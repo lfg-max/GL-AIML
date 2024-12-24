@@ -1,0 +1,8 @@
+
+The extension " Jupyter Slide Show " is used to convert notebook to slides.
+You can find instruction when u open it in VSCode extensions
+
+
+Execute th following command
+
+jupyter nbconvert 'M1_Python_W2_MovieLens_Case_Study.ipynb' --to slides --post serve

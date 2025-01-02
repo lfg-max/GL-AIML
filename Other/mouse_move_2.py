@@ -2,13 +2,15 @@ import pyautogui
 import random
 import time
 import threading
+import os
 
 stop_flag = threading.Event()
 
 def read_config():
     config = {}
+    config_path = os.path.join(os.path.dirname(__file__), 'config.txt')
     try:
-        with open('config.txt', 'r') as file:
+        with open(config_path, 'r') as file:
             for line in file:
                 name, value = line.strip().split('=')
                 config[name] = int(value)
@@ -16,6 +18,7 @@ def read_config():
         print("Config file not found. Using default values.")
     except ValueError:
         print("Error parsing config file. Using default values.")
+    print(f"Config: {config}")
     return config
 
 def keep_mouse_moving():

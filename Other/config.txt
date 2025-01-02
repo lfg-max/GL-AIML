@@ -1,1 +1,1 @@
-wait_time=50
+wait_time=20

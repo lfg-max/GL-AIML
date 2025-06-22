@@ -14,10 +14,10 @@ VECTOR_DB_DIR = 'vector_db_1024'   # This will have to be changed if the embeddi
 
 # --- LLM Configuration ---
 # Name of the Ollama model to be used for generating responses.
-OLLAMA_MODEL_NAME = "llama3.2"
+# OLLAMA_MODEL_NAME = "llama3.2"
 OLLAMA_MODEL_NAME = "deepseek-r1"
-OLLAMA_MODEL_NAME = "qwen3:4b"
-OLLAMA_MODEL_NAME = "deepseek-r1:1.5b"
+# OLLAMA_MODEL_NAME = "qwen3:4b"
+# OLLAMA_MODEL_NAME = "deepseek-r1:1.5b"
 # OLLAMA_MODEL_NAME = "gemma3:4b"
 # OLLAMA_MODEL_NAME = "mistral"
 

@@ -1,0 +1,855 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GL-Beats Data Exploration: SQL Queries</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet"> <!-- Enhanced code font -->
+    <style>
+        :root {
+            --primary-bg: linear-gradient(135deg, #1a1a2e, #0f0c29); /* Gradient for depth */
+            --secondary-bg: #16213e;
+            --card-bg: #0f3460;
+            --text-light: #e0e0e0;
+            --text-accent: #e94560;
+            --code-bg: #0a1128;
+            --code-text: #87ceeb;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --highlight-color: #ff69b4; /* Pink highlight for accents */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-light);
+            overflow: hidden;
+        }
+        .slideshow-container {
+            width: 90%;
+            max-width: 1100px; /* Slightly wider for better layout */
+            background-color: var(--secondary-bg);
+            box-shadow: 0 15px 40px var(--shadow-color);
+            border-radius: 16px; /* Softer corners */
+            overflow: hidden;
+            position: relative;
+            transition: all 0.5s ease-in-out;
+            border: 1px solid var(--border-color);
+        }
+        .slide {
+            display: none;
+            padding: 60px; /* More padding for breathing room */
+            text-align: left;
+            box-sizing: border-box;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            transition: opacity 0.8s ease-in-out, transform 0.5s ease; /* Added transform transition */
+            opacity: 0;
+            transform: translateY(20px); /* Slide-in effect */
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+            animation: fadeInUp 0.6s ease-out; /* Animation for active slide */
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            font-size: 3em; /* Larger for impact */
+            color: var(--text-accent);
+            margin-bottom: 30px;
+            text-align: center;
+            width: 100%;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Subtle shadow */
+        }
+        h2 {
+            font-size: 2.2em;
+            color: var(--text-light);
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--text-accent);
+            padding-bottom: 12px;
+            width: 100%;
+        }
+        pre {
+            background-color: var(--code-bg);
+            padding: 25px;
+            border-radius: 10px;
+            overflow-x: auto;
+            text-align: left;
+            margin-top: 30px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); /* Inset shadow for depth */
+        }
+        code {
+            font-family: 'Fira Code', monospace;
+            color: var(--code-text);
+            font-size: 1em;
+            line-height: 1.6;
+        }
+        /* Simple code highlighting */
+        code .keyword { color: #ff79c6; } /* Keywords like SELECT, FROM */
+        code .string { color: #50fa7b; } /* Strings */
+        code .number { color: #bd93f9; } /* Numbers */
+        p {
+            color: var(--text-light);
+            line-height: 1.9;
+            font-size: 1.15em;
+            margin-top: 20px;
+            width: 100%;
+        }
+        p strong {
+            color: var(--highlight-color); /* Changed to highlight color */
+        }
+        .navigation {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            padding: 0 30px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+        .prev, .next {
+            cursor: pointer;
+            padding: 18px 25px;
+            color: var(--text-light);
+            font-weight: bold;
+            font-size: 32px;
+            transition: 0.3s ease;
+            user-select: none;
+            background-color: rgba(233, 69, 96, 0.7);
+            backdrop-filter: blur(8px); /* Enhanced blur */
+            border: 1px solid var(--text-accent);
+            border-radius: 50%; /* Circular buttons for modern feel */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+        }
+        .prev:hover, .next:hover {
+            background-color: var(--text-accent);
+            transform: scale(1.1); /* Larger scale on hover */
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.8);
+        }
+        .slide-number {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-light);
+            font-size: 1.1em;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 8px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+            z-index: 9;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Gemini API Feature Specific Styles */
+        .gemini-button {
+            background-color: var(--text-accent); /* Align with theme */
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-top: 35px;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            align-self: center; /* Center the button */
+        }
+        .gemini-button:hover {
+            background-color: #c53a50; /* Darker shade */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .insights-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .insights-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .insights-content {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg)); /* Gradient for overlay */
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px var(--shadow-color);
+            max-width: 750px;
+            max-height: 85vh;
+            overflow-y: auto;
+            color: var(--text-light);
+            position: relative;
+            animation: fadeInScale 0.5s ease-out forwards;
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .insights-content h3 {
+            color: var(--highlight-color);
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .insights-content p {
+            font-size: 1.15em;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .insights-content ul {
+            list-style-type: disc;
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+        .insights-content li {
+            margin-bottom: 10px;
+        }
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .close-button:hover {
+            color: var(--text-accent);
+            transform: rotate(90deg); /* Fun rotate effect */
+        }
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid var(--text-accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 25px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-spinner.active {
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .slideshow-container {
+                width: 95%;
+                margin: 20px 0;
+            }
+            .slide {
+                padding: 40px;
+                min-height: 450px;
+            }
+            h1 {
+                font-size: 2.5em;
+            }
+            h2 {
+                font-size: 1.8em;
+            }
+            p {
+                font-size: 1.05em;
+            }
+            .prev, .next {
+                font-size: 28px;
+                width: 60px;
+                height: 60px;
+            }
+            .insights-content {
+                padding: 35px;
+                max-width: 90%;
+            }
+            .insights-content h3 {
+                font-size: 1.7em;
+            }
+            .insights-content p {
+                font-size: 1.05em;
+            }
+            .gemini-button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slide {
+                padding: 25px;
+                min-height: 400px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            pre {
+                padding: 15px;
+            }
+            code {
+                font-size: 0.9em;
+            }
+            p {
+                font-size: 0.95em;
+            }
+            .prev, .next {
+                font-size: 24px;
+                width: 50px;
+                height: 50px;
+            }
+            .insights-content {
+                padding: 25px;
+            }
+            .insights-content h3 {
+                font-size: 1.5em;
+            }
+            .insights-content p {
+                font-size: 0.95em;
+            }
+            .gemini-button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="slideshow-container">
+
+    <div class="slide active">
+        <h1>GL-Beats: Data Exploration & Performance Review</h1>
+        <p><strong>Business Context:</strong> GL-Beats is a music-based startup selling records online globally. Executives need a performance review and recommendations on music genres for customers and artists to contract in specific countries based on popularity.</p>
+        <p><strong>Objective:</strong> As data scientists, we're exploring the dataset using SQL to answer key business questions and drive strategic decision-making.</p>
+        <button class="gemini-button" onclick="generateBusinessInsights()">✨ Generate Business Insights</button>
+        <div class="slide-number">1 / 47</div>
+    </div>
+
+    <!-- Query 1 -->
+    <div class="slide">
+        <h2>Query [1]: Question</h2>
+        <p>How to retrieve all the rows of data present in our table album?</p>
+        <div class="slide-number">2 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [1]: Code & Explanation</h2>
+        <pre><code>USE gl_beats;
+
+SELECT *
+FROM album;</code></pre>
+        <p><strong>Explanation:</strong> This query uses <code>SELECT *</code> to retrieve all columns and all rows from the `album` table. It's a foundational query to get a complete view of a table's contents.</p>
+        <div class="slide-number">3 / 47</div>
+    </div>
+
+    <!-- Query 2 -->
+    <div class="slide">
+        <h2>Query [2]: Question</h2>
+        <p>How many rows of data are present in our table customers?</p>
+        <div class="slide-number">4 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [2]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    COUNT(*) 
+FROM customers;</code></pre>
+        <p><strong>Explanation:</strong> <code>COUNT(*)</code> is an aggregate function that returns the total number of rows in the `customers` table. This helps understand the dataset's size.</p>
+        <div class="slide-number">5 / 47</div>
+    </div>
+
+    <!-- Query 3 -->
+    <div class="slide">
+        <h2>Query [3]: Question</h2>
+        <p>In order to show sample rows to the top management, write a query to show only 5 rows from the table artist.</p>
+        <div class="slide-number">6 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [3]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM artist
+LIMIT 5;</code></pre>
+        <p><strong>Explanation:</strong> The <code>LIMIT 5</code> clause restricts the output to only the first 5 rows from the `artist` table. This is useful for providing a quick sample of data to stakeholders without fetching the entire dataset.</p>
+        <div class="slide-number">7 / 47</div>
+    </div>
+
+    <!-- Query 4 -->
+    <div class="slide">
+        <h2>Query [4]: Question</h2>
+        <p>Write a query to retrieve the unique playlist in our database.</p>
+        <div class="slide-number">8 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [4]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    DISTINCT playlist_name
+FROM playlist;</code></pre>
+        <p><strong>Explanation:</strong> The <code>DISTINCT</code> keyword ensures that only unique `playlist_name` values are returned from the `playlist` table. This helps identify all the different types of playlists available.</p>
+        <div class="slide-number">9 / 47</div>
+    </div>
+
+    <!-- Query 5 -->
+    <div class="slide">
+        <h2>Query [5]: Question</h2>
+        <p>Write a query to fetch the unique artists present in our database?</p>
+        <div class="slide-number">10 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [5]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    DISTINCT artist_name
+FROM artist;</code></pre>
+        <p><strong>Explanation:</strong> Similar to the previous query, <code>DISTINCT artist_name</code> fetches all unique artist names from the `artist` table. This is crucial for understanding the diversity of artists in the database.</p>
+        <div class="slide-number">11 / 47</div>
+    </div>
+
+    <!-- Query 6 -->
+    <div class="slide">
+        <h2>Query [6]: Question</h2>
+        <p>Write a query to count the customers in the country of Brazil?</p>
+        <div class="slide-number">12 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [6]: Code & Explanation</h2>
+        <pre><code>SELECT
+     COUNT(DISTINCT customer_id) AS count_of_cust
+FROM customers
+WHERE customer_country = 'Brazil';</code></pre>
+        <p><strong>Explanation:</strong> This query uses a <code>WHERE</code> clause to filter customers by `customer_country` equal to 'Brazil' and then counts the distinct `customer_id`s. This provides insights into customer distribution by country.</p>
+        <div class="slide-number">13 / 47</div>
+    </div>
+
+    <!-- Query 7 -->
+    <div class="slide">
+        <h2>Query [7]: Question</h2>
+        <p>Write a query to count the number of artists?</p>
+        <div class="slide-number">14 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [7]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    COUNT(DISTINCT artist_id) AS no_of_artist
+FROM artist;</code></pre>
+        <p><strong>Explanation:</strong> <code>COUNT(DISTINCT artist_id)</code> counts the unique `artist_id`s in the `artist` table, giving the total number of distinct artists GL-Beats has information on.</p>
+        <div class="slide-number">15 / 47</div>
+    </div>
+
+    <!-- Query 8 -->
+    <div class="slide">
+        <h2>Query [8]: Question</h2>
+        <p>Write a query to count the number of customers in the countries of Brazil, Germany, and Canada.</p>
+        <div class="slide-number">16 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [8]: Code & Explanation</h2>
+        <pre><code>SELECT
+    COUNT(DISTINCT customer_id) AS count_of_cust
+FROM customers
+WHERE customer_country IN ('Brazil','Germany','Canada');</code></pre>
+        <p><strong>Explanation:</strong> The <code>IN</code> operator allows specifying multiple values in the <code>WHERE</code> clause. This query efficiently counts customers in a list of specified countries.</p>
+        <div class="slide-number">17 / 47</div>
+    </div>
+
+    <!-- Query 9 -->
+    <div class="slide">
+        <h2>Query [9]: Question</h2>
+        <p>Write a query to retrieve information about customers with customer IDs ranging from 1 to 10.</p>
+        <div class="slide-number">18 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [9]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE customer_id BETWEEN 1 AND 10;</code></pre>
+        <p><strong>Explanation:</strong> The <code>BETWEEN</code> operator is used to filter records within a specified range (inclusive). Here, it fetches all details for customers with `customer_id`s from 1 to 10.</p>
+        <div class="slide-number">19 / 47</div>
+    </div>
+
+    <!-- Query 10 -->
+    <div class="slide">
+        <h2>Query [10]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose duration is between 100000 and 500000 and whose price is 0.99.</p>
+        <div class="slide-number">20 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [10]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE (milliseconds BETWEEN 100000 AND 500000) AND (unit_price = 0.99);</code></pre>
+        <p><strong>Explanation:</strong> This query uses the <code>AND</code> operator to combine two conditions: `milliseconds` within a range AND `unit_price` exactly 0.99. Both conditions must be true for a row to be returned.</p>
+        <div class="slide-number">21 / 47</div>
+    </div>
+
+    <!-- Query 11 -->
+    <div class="slide">
+        <h2>Query [11]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose duration is in between 100000 and 500000 or whose price is 0.99?</p>
+        <div class="slide-number">22 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [11]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE (milliseconds BETWEEN 100000 AND 500000) OR (unit_price = 0.99);</code></pre>
+        <p><strong>Explanation:</strong> The <code>OR</code> operator returns rows where at least one of the specified conditions is true. Here, tracks with milliseconds in the range OR a unit price of 0.99 are selected.</p>
+        <div class="slide-number">23 / 47</div>
+    </div>
+
+    <!-- Query 12 -->
+    <div class="slide">
+        <h2>Query [12]: Question</h2>
+        <p>Write a query to get all the details for the customers whose first name starts with L?</p>
+        <div class="slide-number">24 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [12]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE first_name LIKE 'L%';</code></pre>
+        <p><strong>Explanation:</strong> The <code>LIKE</code> operator is used for pattern matching. <code>'L%'</code> matches any string that starts with 'L', followed by any sequence of characters (%). This helps in searching for names based on partial matches.</p>
+        <div class="slide-number">25 / 47</div>
+    </div>
+
+    <!-- Query 13 -->
+    <div class="slide">
+        <h2>Query [13]: Question</h2>
+        <p>Write a query to get all the details for the customers whose first name ends with K?</p>
+        <div class="slide-number">26 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [13]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE first_name LIKE '%K';</code></pre>
+        <p><strong>Explanation:</strong> <code>'%K'</code> matches any string that ends with 'K', preceded by any sequence of characters (%). This allows finding customers whose first name ends with a specific letter.</p>
+        <div class="slide-number">27 / 47</div>
+    </div>
+
+    <!-- Query 14 -->
+    <div class="slide">
+        <h2>Query [14]: Question</h2>
+        <p>Write a query to fetch the details of the customer whose first name is Dan.</p>
+        <div class="slide-number">28 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [14]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE first_name = 'Dan';</code></pre>
+        <p><strong>Explanation:</strong> This is a straightforward equality comparison using the <code>=</code> operator to find all records where the `first_name` is exactly 'Dan'.</p>
+        <div class="slide-number">29 / 47</div>
+    </div>
+
+    <!-- Query 15 -->
+    <div class="slide">
+        <h2>Query [15]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose unit price should not be equal to $0.90 and also the genre ID should not be equal to 18.</p>
+        <div class="slide-number">30 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [15]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE unit_price <> 0.90 AND genre_id != 18;</code></pre>
+        <p><strong>Explanation:</strong> The operators <code><></code> and <code>!=</code> both signify "not equal to". This query filters tracks where the `unit_price` is not 0.90 AND the `genre_id` is not 18, demonstrating exclusion conditions.</p>
+        <div class="slide-number">31 / 47</div>
+    </div>
+
+    <!-- Query 16 -->
+    <div class="slide">
+        <h2>Query [16]: Question</h2>
+        <p>Write a query to fetch the details of the tracks where the unit price is greater than 0.90 $?</p>
+        <div class="slide-number">32 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [16]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE unit_price > 0.90;</code></pre>
+        <p><strong>Explanation:</strong> The <code>></code> operator is used for a "greater than" comparison. This query retrieves all track details where the `unit_price` is strictly greater than 0.90.</p>
+        <div class="slide-number">33 / 47</div>
+    </div>
+
+    <!-- Query 17 -->
+    <div class="slide">
+        <h2>Query [17]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose genre id is 10.</p>
+        <div class="slide-number">34 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [17]: Code & Explanation</h2>
+        <pre><code>SELECT  
+    track_id
+FROM tracks
+WHERE genre_id = 10;</code></pre>
+        <p><strong>Explanation:</strong> This query selects only the `track_id` from the `tracks` table where the `genre_id` is equal to 10. This is useful for focusing on specific attributes based on a condition.</p>
+        <div class="slide-number">35 / 47</div>
+    </div>
+
+    <!-- Query 18 -->
+    <div class="slide">
+        <h2>Query [18]: Question</h2>
+        <p>Write a query to fetch the details of the tracks for the genre id greater than 10?</p>
+        <div class="slide-number">36 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [18]: Code & Explanation</h2>
+        <pre><code>SELECT  
+    track_id
+FROM tracks
+WHERE genre_id > 10;</code></pre>
+        <p><strong>Explanation:</strong> Similar to the previous query, but using the <code>></code> operator, this selects `track_id`s for all genres where the `genre_id` is greater than 10.</p>
+        <div class="slide-number">37 / 47</div>
+    </div>
+
+    <!-- Query 19 -->
+    <div class="slide">
+        <h2>Query [19]: Question</h2>
+        <p>Write a query to fetch the invoices for the billing city of Edmonton, and also the billing price should be greater than 8 dollars.</p>
+        <div class="slide-number">38 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [19]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM invoice
+WHERE billing_city = 'Edmonton' AND total_price > 8;</code></pre>
+        <p><strong>Explanation:</strong> This query combines two conditions with <code>AND</code>: `billing_city` must be 'Edmonton' AND `total_price` must be greater than 8. This helps identify high-value invoices from specific locations.</p>
+        <div class="slide-number">39 / 47</div>
+    </div>
+
+    <!-- Query 20 -->
+    <div class="slide">
+        <h2>Query [20]: Question</h2>
+        <p>Write a query to fetch the invoices whose billing city is Berlin or Paris and the invoice date is 2009-02-01.</p>
+        <div class="slide-number">40 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [20]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM invoice
+WHERE invoice_date = '2009-02-01' AND (billing_city = 'Berlin' OR billing_city = 'Paris');</code></pre>
+        <p><strong>Explanation:</strong> This query uses a combination of <code>AND</code> and <code>OR</code>. It retrieves invoices from a specific date AND where the `billing_city` is either 'Berlin' OR 'Paris'. Parentheses are used to ensure correct logical grouping.</p>
+        <div class="slide-number">41 / 47</div>
+    </div>
+
+    <!-- Query 21 -->
+    <div class="slide">
+        <h2>Query [21]: Question</h2>
+        <p>Write a query to retrieve number of invoices in each city from invoice table in descending order.</p>
+        <div class="slide-number">42 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [21]: Code & Explanation</h2>
+        <pre><code>SELECT billing_city, COUNT(invoice_id) AS cnt_city
+FROM invoice
+GROUP BY billing_city
+ORDER BY COUNT(billing_city) DESC;</code></pre>
+        <p><strong>Explanation:</strong> This query uses <code>GROUP BY</code> to aggregate invoices by `billing_city` and `COUNT` to get the number of invoices for each city. <code>ORDER BY ... DESC</code> sorts the results by the count in descending order, showing which cities have the most invoices.</p>
+        <div class="slide-number">43 / 47</div>
+    </div>
+
+    <!-- Query 22 -->
+    <div class="slide">
+        <h2>Query [22]: Question</h2>
+        <p>Write a query to get the revenue generated in each city from invoice table in descending order of cities.</p>
+        <div class="slide-number">44 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [22]: Code & Explanation</h2>
+        <pre><code>SELECT billing_city, SUM(total_price) AS Total_Revenue
+FROM invoice
+GROUP BY billing_city
+ORDER BY 2 DESC;</code></pre>
+        <p><strong>Explanation:</strong> This query groups invoices by `billing_city` and uses <code>SUM(total_price)</code> to calculate the total revenue for each city. <code>ORDER BY 2 DESC</code> sorts by the second column (`Total_Revenue`) in descending order, highlighting top-revenue cities.</p>
+        <div class="slide-number">45 / 47</div>
+    </div>
+
+    <!-- Query 23 -->
+    <div class="slide">
+        <h2>Query [23]: Question</h2>
+        <p>Write a query to get the number of customers for each country that have number of customers more than 5 from customers table.</p>
+        <div class="slide-number">46 / 47</div>
+    </div>
+    <div class="slide">
+        <h2>Query [23]: Code & Explanation</h2>
+        <pre><code>SELECT customer_country, COUNT(customer_id) AS no_of_customers
+FROM customers
+GROUP BY 1
+HAVING count(customer_id) > 5
+ORDER BY 2;</code></pre>
+        <p><strong>Explanation:</strong> This query groups customers by `customer_country` and counts them. The <code>HAVING</code> clause filters these groups, showing only countries with more than 5 customers. <code>ORDER BY 2</code> sorts by the customer count, helping identify significant customer bases.</p>
+        <div class="slide-number">47 / 47</div>
+    </div>
+
+    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+
+</div>
+
+<!-- Overlay for Business Insights -->
+<div id="insightsOverlay" class="insights-overlay">
+    <div class="insights-content">
+        <button class="close-button" onclick="closeInsightsOverlay()">&times;</button>
+        <h3>✨ Business Insights & Recommendations ✨</h3>
+        <div id="insightsText">
+            <div class="loading-spinner" id="loadingSpinner"></div>
+            <p>Click "Generate Business Insights" to see recommendations.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let slideIndex = 0;
+    showSlides(slideIndex);
+
+    function plusSlides(n) {
+        showSlides(slideIndex += n);
+    }
+
+    function showSlides(n) {
+        let i;
+        let slides = document.getElementsByClassName("slide");
+        let totalSlides = slides.length;
+        if (n >= totalSlides) {slideIndex = 0}    
+        if (n < 0) {slideIndex = totalSlides - 1}
+        for (i = 0; i < totalSlides; i++) {
+            slides[i].style.display = "none";  
+            slides[i].classList.remove('active');
+        }
+        slides[slideIndex].style.display = "flex";  
+        slides[slideIndex].classList.add('active');
+        updateSlideNumber();
+    }
+
+    function updateSlideNumber() {
+        let slides = document.getElementsByClassName("slide");
+        let currentSlideNumber = slideIndex + 1;
+        let totalSlides = slides.length;
+        const activeSlide = slides[slideIndex];
+        let slideNumberElement = activeSlide.querySelector('.slide-number');
+        if (slideNumberElement) {
+            slideNumberElement.textContent = currentSlideNumber + " / " + totalSlides;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateSlideNumber);
+
+    // Gemini API Integration (unchanged)
+    async function generateBusinessInsights() {
+        const insightsOverlay = document.getElementById('insightsOverlay');
+        const insightsText = document.getElementById('insightsText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        insightsOverlay.classList.add('active');
+        insightsText.innerHTML = ''; // Clear previous content
+        loadingSpinner.classList.add('active'); // Show spinner
+
+        // Collect all queries and explanations
+        let allQueriesAndExplanations = "";
+        const slides = document.getElementsByClassName("slide");
+        // Start from slide 1 (index 1) to skip the intro slide, and step by 2 for question/explanation pairs
+        for (let i = 1; i < slides.length; i += 2) { 
+            // Ensure there's a corresponding explanation slide
+            if (i + 1 < slides.length) {
+                const questionSlide = slides[i];
+                const explanationSlide = slides[i + 1];
+                
+                const questionElement = questionSlide.querySelector('p');
+                const codeElement = explanationSlide.querySelector('code');
+                const explanationElement = explanationSlide.querySelector('p');
+
+                if (questionElement && codeElement && explanationElement) {
+                    const question = questionElement.textContent.trim();
+                    const code = codeElement.textContent.trim();
+                    const explanation = explanationElement.textContent.trim();
+                    allQueriesAndExplanations += `\n\nQuery Question: ${question}\nSQL Code:\n${code}\nExplanation: ${explanation}`;
+                }
+            }
+        }
+
+        const prompt = `Given the following SQL queries and their explanations, which are part of a data exploration for GL-Beats, a music-based startup selling records online, and considering their business objectives to find recommendations on music genres for customers and artists to contract in specific countries based on popularity, please provide a concise summary of potential business insights and strategic recommendations that could be derived from analyzing the results of these queries. Focus on how these queries help answer the business questions.
+
+Queries and Explanations:
+${allQueriesAndExplanations}`;
+
+        try {
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will automatically provide the API key
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                const text = result.candidates[0].content.parts[0].text;
+                insightsText.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`; // Display the response
+            } else {
+                insightsText.innerHTML = `<p>Error: Could not retrieve insights. Unexpected API response structure.</p>`;
+                console.error("Unexpected API response structure:", result);
+            }
+        } catch (error) {
+            insightsText.innerHTML = `<p>Error generating insights: ${error.message}. Please try again later.</p>`;
+            console.error("Error calling Gemini API:", error);
+        } finally {
+            loadingSpinner.classList.remove('active'); // Hide spinner
+        }
+    }
+
+    function closeInsightsOverlay() {
+        document.getElementById('insightsOverlay').classList.remove('active');
+    }
+</script>
+
+</body>
+</html>
+```

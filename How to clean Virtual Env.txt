@@ -1,0 +1,15 @@
+Open the Terminal and make sure you are in the Virtual Environment.
+
+Cmd + Shift + P - Python create Environment.
+
+Get all the installed packages.
+pip freeze > installed_packages.txt
+
+
+Remove the packages
+pip uninstall -r installed_packages.txt -y
+
+
+Check if the packages are uninstalled.
+pip list
+     

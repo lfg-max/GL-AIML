@@ -1,0 +1,10 @@
+huggingface_hub
+tiktoken
+pymupdf
+langchain-community
+langchain
+langchain-chroma
+langchain-huggingface
+ollama
+pandas
+sentence-transformers

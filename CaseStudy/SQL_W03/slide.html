@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive SQL Explainer - Retail Analysis</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --primary-surface-color: #1e1e1e;
+            --secondary-surface-color: #2a2a2a;
+            --text-color: #e0e0e0;
+            --text-muted-color: #a0a0a0;
+            --primary-accent-color: #bb86fc;
+            --secondary-accent-color: #03dac6;
+            --border-color: #333;
+            --highlight-bg: rgba(187, 134, 252, 0.2);
+            --highlight-border: #bb86fc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Panel: Query List */
+        .query-list-panel {
+            width: 30%;
+            max-width: 400px;
+            background-color: var(--primary-surface-color);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .query-list-panel h1 {
+            color: var(--primary-accent-color);
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid var(--primary-accent-color);
+            padding-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .query-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .query-list-item {
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+        }
+
+        .query-list-item:hover {
+            background-color: var(--secondary-surface-color);
+        }
+
+        .query-list-item.active {
+            background-color: var(--highlight-bg);
+            border-left: 4px solid var(--primary-accent-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Right Panel: Content Display */
+        .content-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 30px 40px;
+        }
+
+        .query-title {
+            color: var(--secondary-accent-color);
+            font-size: 28px;
+            margin-top: 0;
+        }
+
+        /* SQL Code Block */
+        .sql-code-container {
+            position: relative; /* For positioning the copy button */
+            background-color: #282c34;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            min-height: 200px; 
+            display: flex;
+            align-items: center;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #3a3f4b;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted-color);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            opacity: 0.7;
+            transition: opacity 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+            background-color: #4c5364;
+        }
+        
+        .copy-btn .copy-icon {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .copy-btn .copy-feedback {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+
+        .sql-code {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 16px;
+            white-space: pre-wrap;
+            color: #abb2bf;
+            width: 100%;
+        }
+
+        .sql-code .sql-segment {
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .sql-code .sql-segment.hidden {
+            visibility: hidden;
+        }
+
+        .sql-code .highlight-sql {
+            background-color: var(--highlight-bg);
+            box-shadow: 0 0 0 2px var(--highlight-border);
+            color: white;
+        }
+        
+        .action-plan {
+            color: var(--text-muted-color);
+            text-align: left;
+            width: 100%;
+        }
+        .action-plan h3 {
+            color: var(--secondary-accent-color);
+            margin-top: 0;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 18px;
+        }
+        .action-plan ul {
+            list-style-type: '» ';
+            padding-left: 25px;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .action-plan li {
+            padding-bottom: 10px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        .action-plan li:last-child {
+            padding-bottom: 0;
+        }
+
+        .explanation-container {
+            margin-top: 30px;
+        }
+
+        .explanation-step {
+            background-color: var(--primary-surface-color);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--secondary-accent-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .explanation-step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .explanation-step h3 {
+            margin-top: 0;
+            color: var(--secondary-accent-color);
+        }
+        
+        .explanation-step p {
+            margin-bottom: 0;
+            line-height: 1.6;
+            color: var(--text-muted-color);
+        }
+        
+        .explanation-step code {
+            background-color: #333;
+            color: var(--secondary-accent-color);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            flex-shrink: 0;
+            padding: 20px 40px;
+            background-color: var(--primary-surface-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-btn {
+            background-color: var(--primary-accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            min-width: 120px;
+        }
+        
+        .control-btn.secondary {
+             background-color: transparent;
+             border: 2px solid var(--primary-accent-color);
+             color: var(--primary-accent-color);
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background-color: #a968f5;
+            color: white;
+        }
+        
+        .control-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .control-btn:disabled {
+            background-color: #555;
+            border-color: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .query-list-panel {
+                width: 100%;
+                max-width: none;
+                height: 40%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .content-panel {
+                height: 60%;
+            }
+            .main-content, .controls {
+                padding: 20px;
+            }
+            .query-title {
+                font-size: 22px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="query-list-panel">
+            <h1>Retail Analysis Queries</h1>
+            <ul class="query-list" id="query-list">
+            </ul>
+        </div>
+        <div class="content-panel" id="content-panel">
+            <div class="main-content">
+                <h2 class="query-title" id="query-title"></h2>
+                
+                <div class="sql-code-container">
+                    <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+                    </button>
+                    <pre><code class="sql-code" id="sql-code"></code></pre>
+                </div>
+
+                <div class="explanation-container" id="explanation-container">
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn secondary" id="back-step-btn">Back</button>
+                <button class="control-btn" id="next-step-btn">Start Explanation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const queryData = [
+            {
+                question: "List all customers who have not placed any orders.",
+                query: "SELECT \n    FirstName, LastName\nFROM \n    customer\nWHERE \n    Id NOT IN (SELECT CustomerId FROM orders);",
+                plan: [
+                    "Get a list of all customer IDs that have placed an order.",
+                    "Select customers from the main list whose ID is not in the 'orders' list.",
+                    "Display the names of these customers."
+                ],
+                steps: [
+                    { segmentId: 'q1_s1', title: "Step 1: Find All Ordering Customers", explanation: "First, we create a subquery to get a list of all `CustomerId`s that exist in the `orders` table. These are the customers who have made at least one purchase." },
+                    { segmentId: 'q1_s2', title: "Step 2: Filter the Main Customer List", explanation: "We use the `WHERE` clause with `NOT IN` to filter the `customer` table. This keeps only the rows where the customer's `Id` is not present in the list of purchasing customers we generated in the subquery." },
+                    { segmentId: 'q1_s3', title: "Step 3: Select the Names", explanation: "Finally, we select the `FirstName` and `LastName` of the customers who remain after the filtering process." }
+                ],
+                querySegments: { 'q1_s3': "SELECT \n    FirstName, LastName", 'q1_s2': "FROM \n    customer\nWHERE \n    Id NOT IN ", 'q1_s1': "(SELECT CustomerId FROM orders);" }
+            },
+            {
+                question: "Retrieve the names of products that have never been ordered.",
+                query: "SELECT \n    ProductName\nFROM \n    product\nWHERE \n    Id NOT IN (SELECT ProductId FROM orderitem);",
+                plan: [
+                    "Get a list of all product IDs that have been ordered.",
+                    "Select products whose ID is not in that list.",
+                    "Display the names of these unordered products."
+                ],
+                steps: [
+                    { segmentId: 'q2_s1', title: "Step 1: Find All Ordered Products", explanation: "A subquery identifies all unique `ProductId`s from the `orderitem` table, representing every product that has been ordered at least once." },
+                    { segmentId: 'q2_s2', title: "Step 2: Filter the Product List", explanation: "The `WHERE` clause with `NOT IN` filters the main `product` table, excluding any product whose `Id` is in the list of ordered products." },
+                    { segmentId: 'q2_s3', title: "Step 3: Select the Product Name", explanation: "Finally, we select the `ProductName` of the products that remain, which are the ones that have never been sold." }
+                ],
+                querySegments: { 'q2_s3': "SELECT \n    ProductName", 'q2_s2': "FROM \n    product\nWHERE \n    Id NOT IN ", 'q2_s1': "(SELECT ProductId FROM orderitem);" }
+            },
+            {
+                question: "Identify the top 3 customers who have spent the most on orders.",
+                query: "SELECT \n    FirstName, LastName, TotalSpent\nFROM (\n  SELECT \n    c.FirstName, c.LastName, ROUND(SUM(o.TotalAmount),2) AS TotalSpent\n  FROM \n    customer c\n    LEFT JOIN orders o ON c.Id = o.CustomerId\n  GROUP BY \n\t\tc.FirstName, c.LastName\n) AS CustomerSpending\nORDER BY \n    TotalSpent DESC\nLIMIT 3;",
+                plan: [
+                    "Join customers to their orders to link spending amounts.",
+                    "Group by customer and sum their total spending.",
+                    "Order the results from highest to lowest spending.",
+                    "Limit the final list to the top 3."
+                ],
+                steps: [
+                    { segmentId: 'q3_s1', title: "Step 1: Calculate Spending per Customer", explanation: "A subquery joins `customer` and `orders`, groups by customer, and calculates the total spent (`SUM(o.TotalAmount)`) for each one. This creates a temporary summary of all customer spending." },
+                    { segmentId: 'q3_s2', title: "Step 2: Select from the Summary", explanation: "The main query selects data from the result of our subquery, which is aliased as `CustomerSpending`." },
+                    { segmentId: 'q3_s3', title: "Step 3: Order by Spending", explanation: "We `ORDER BY TotalSpent DESC` to sort the customers, placing the highest spenders at the top of the list." },
+                    { segmentId: 'q3_s4', title: "Step 4: Limit to Top 3", explanation: "Finally, `LIMIT 3` restricts the output to only the top 3 rows from the sorted list, giving us our most valuable customers." }
+                ],
+                querySegments: { 'q3_s2': "SELECT \n    FirstName, LastName, TotalSpent\nFROM (\n  ", 'q3_s1': "SELECT \n    c.FirstName, c.LastName, ROUND(SUM(o.TotalAmount),2) AS TotalSpent\n  FROM \n    customer c\n    LEFT JOIN orders o ON c.Id = o.CustomerId\n  GROUP BY \n\t\tc.FirstName, c.LastName\n) AS CustomerSpending", 'q3_s3': "ORDER BY \n    TotalSpent DESC", 'q3_s4': "LIMIT 3;" }
+            },
+            {
+                question: "For each supplier, show the total number of unique products sold at least once.",
+                query: "SELECT \n    s.CompanyName, COUNT(DISTINCT p.Id) AS TotalProductsSupplied\nFROM \n    supplier s\n    JOIN product p ON s.Id = p.SupplierId\nWHERE \n    p.Id IN (SELECT DISTINCT ProductId FROM orderitem)\nGROUP BY \n    s.CompanyName;",
+                plan: [
+                    "Find all unique products that have been sold.",
+                    "Join suppliers to their products.",
+                    "Filter the joined list to only include products that have been sold.",
+                    "Group by supplier and count their unique sold products."
+                ],
+                steps: [
+                    { segmentId: 'q4_s1', title: "Step 1: Identify Sold Products", explanation: "A subquery `(SELECT DISTINCT ProductId FROM orderitem)` first creates a distinct list of product IDs that appear in the `orderitem` table. This is our list of all products sold at least once." },
+                    { segmentId: 'q4_s2', title: "Step 2: Link Suppliers to Products", explanation: "We join the `supplier` and `product` tables to link each supplier to the products they provide." },
+                    { segmentId: 'q4_s3', title: "Step 3: Filter by Sold Products", explanation: "The `WHERE p.Id IN ...` clause filters the joined results, keeping only the supplier-product pairs where the product ID is in the list of sold products from our subquery." },
+                    { segmentId: 'q4_s4', title: "Step 4: Group by Supplier", explanation: "The results are then grouped by the supplier's company name, so we can count products for each one." },
+                    { segmentId: 'q4_s5', title: "Step 5: Count Unique Products", explanation: "Finally, for each supplier group, we select their name and use `COUNT(DISTINCT p.Id)` to count the number of unique products associated with them." }
+                ],
+                querySegments: { 'q4_s5': "SELECT \n    s.CompanyName, COUNT(DISTINCT p.Id) AS TotalProductsSupplied", 'q4_s2': "FROM \n    supplier s\n    JOIN product p ON s.Id = p.SupplierId", 'q4_s3': "WHERE \n    p.Id IN ", 'q4_s1': "(SELECT DISTINCT ProductId FROM orderitem)", 'q4_s4': "GROUP BY \n    s.CompanyName;" }
+            },
+            {
+                question: "Identify the average spending per order for each customer who has placed more than one order.",
+                query: "SELECT \n    c.FirstName, c.LastName, ROUND((CustomerOrderTotals.TotalSpent / CustomerOrderTotals.OrderCount),2) AS AvgSpendingPerOrder\nFROM \n    customer c\n    JOIN (SELECT CustomerId, SUM(TotalAmount) AS TotalSpent, COUNT(Id) AS OrderCount FROM orders GROUP BY CustomerId) AS CustomerOrderTotals ON c.Id = CustomerOrderTotals.CustomerId\nWHERE \n    CustomerOrderTotals.OrderCount > 1;",
+                plan: [
+                    "Calculate total spending and order count for every customer.",
+                    "Join this summary back to the customer table to get names.",
+                    "Filter for customers who have more than one order.",
+                    "Calculate and select the average spending for the remaining customers."
+                ],
+                steps: [
+                    { segmentId: 'q5_s1', title: "Step 1: Summarize All Orders", explanation: "A subquery first calculates the total amount spent (`SUM`) and the total number of orders (`COUNT`) for each `CustomerId` in the `orders` table. This result is aliased as `CustomerOrderTotals`." },
+                    { segmentId: 'q5_s2', title: "Step 2: Join Summary to Customers", explanation: "We then join the main `customer` table with our aggregated `CustomerOrderTotals` subquery on the customer ID to link names with spending habits." },
+                    { segmentId: 'q5_s3', title: "Step 3: Filter for Repeat Customers", explanation: "A `WHERE` clause filters these joined results to include only customers who have an `OrderCount` greater than 1." },
+                    { segmentId: 'q5_s4', title: "Step 4: Calculate Average Spending", explanation: "For the remaining customers, we select their names and calculate the `AvgSpendingPerOrder` by dividing their total spending by their order count." }
+                ],
+                querySegments: { 'q5_s4': "SELECT \n    c.FirstName, c.LastName, ROUND((CustomerOrderTotals.TotalSpent / CustomerOrderTotals.OrderCount),2) AS AvgSpendingPerOrder", 'q5_2': "FROM \n    customer c", 'q5_s1': "JOIN (SELECT CustomerId, SUM(TotalAmount) AS TotalSpent, COUNT(Id) AS OrderCount FROM orders GROUP BY CustomerId) AS CustomerOrderTotals ON c.Id = CustomerOrderTotals.CustomerId", 'q5_s3': "WHERE \n    CustomerOrderTotals.OrderCount > 1;" }
+            },
+            {
+                question: "Identify the most popular product for each customer based on quantity ordered.",
+                query: "SELECT \n    CustomerId, FirstName, LastName, ProductName\nFROM (\n    SELECT \n        c.Id AS CustomerId, c.FirstName, c.LastName, p.ProductName,\n        SUM(oi.Quantity) AS TotalQuantity,\n        RANK() OVER (PARTITION BY c.Id ORDER BY SUM(oi.Quantity) DESC) AS rnk\n    FROM \n        customer c\n        JOIN orders o ON c.Id = o.CustomerId\n        JOIN orderitem oi ON o.Id = oi.OrderId\n        JOIN product p ON oi.ProductId = p.Id\n    GROUP BY \n        c.Id, p.Id, c.FirstName, c.LastName, p.ProductName\n) AS RankedProducts\nWHERE \n    rnk = 1;",
+                plan: [
+                    "Join all tables needed to link customers to product quantities.",
+                    "Group by customer and product to sum the quantity ordered.",
+                    "Use the `RANK()` window function to rank products for each customer by quantity.",
+                    "Select the top-ranked (rank = 1) product for each customer."
+                ],
+                steps: [
+                    { segmentId: 'q6_s1', title: "Step 1: Rank Products Within Customers", explanation: "The inner query is the most complex part. It joins four tables, groups the results to calculate the total quantity of each product bought by each customer, and then uses the `RANK()` window function. `PARTITION BY c.Id` tells it to restart the ranking for each customer, and `ORDER BY SUM(oi.Quantity) DESC` ranks the products by the highest quantity first." },
+                    { segmentId: 'q6_s2', title: "Step 2: Select from Ranked Results", explanation: "The outer query selects data from the results of the inner query, which is treated as a temporary table called `RankedProducts`." },
+                    { segmentId: 'q6_s3', title: "Step 3: Filter for the Top Rank", explanation: "The `WHERE rnk = 1` clause is the final step. It filters the results from the temporary table, selecting only the rows where the rank is 1, which corresponds to the most-ordered product for each customer." }
+                ],
+                querySegments: { 'q6_s2': "SELECT \n    CustomerId, FirstName, LastName, ProductName\nFROM (\n    ", 'q6_s1': "SELECT \n        c.Id AS CustomerId, c.FirstName, c.LastName, p.ProductName,\n        SUM(oi.Quantity) AS TotalQuantity,\n        RANK() OVER (PARTITION BY c.Id ORDER BY SUM(oi.Quantity) DESC) AS rnk\n    FROM \n        customer c\n        JOIN orders o ON c.Id = o.CustomerId\n        JOIN orderitem oi ON o.Id = oi.OrderId\n        JOIN product p ON oi.ProductId = p.Id\n    GROUP BY \n        c.Id, p.Id, c.FirstName, c.LastName, p.ProductName\n) AS RankedProducts", 'q6_s3': "WHERE \n    rnk = 1;" }
+            },
+            {
+                question: "Display customers whose average order amount is higher than the overall average.",
+                query: "SELECT \n    coa.CustomerId, coa.FirstName, coa.LastName, coa.AvgOrderAmount\nFROM (\n    SELECT \n        c.Id AS CustomerId, c.FirstName, c.LastName, ROUND(AVG(o.TotalAmount),2) AS AvgOrderAmount\n    FROM \n        customer c\n        JOIN orders o ON c.Id = o.CustomerId\n    GROUP BY \n        c.Id, c.FirstName, c.LastName\n) AS coa\nWHERE \n    coa.AvgOrderAmount > (SELECT AVG(TotalAmount) FROM orders);",
+                plan: [
+                    "Calculate the overall average order amount for all orders.",
+                    "Calculate the average order amount for each individual customer.",
+                    "Compare each customer's average to the overall average.",
+                    "Select the customers whose average is higher."
+                ],
+                steps: [
+                    { segmentId: 'q7_s1', title: "Step 1: Calculate Overall Average", explanation: "A simple subquery, `(SELECT AVG(TotalAmount) FROM orders)`, calculates the single overall average order amount from the entire `orders` table. This gives us our benchmark." },
+                    { segmentId: 'q7_s2', title: "Step 2: Calculate Each Customer's Average", explanation: "A larger subquery (aliased as `coa`) calculates the average order amount for *each individual customer* by joining, grouping, and using `AVG()`." },
+                    { segmentId: 'q7_s3', title: "Step 3: Compare and Filter", explanation: "The main `WHERE` clause compares the average amount for each customer (`coa.AvgOrderAmount`) with the result of the overall average subquery. Only customers whose average is higher are kept." },
+                    { segmentId: 'q7_s4', title: "Step 4: Select High-Value Customers", explanation: "Finally, we select the details of the customers who met the `WHERE` condition." }
+                ],
+                querySegments: { 'q7_s4': "SELECT \n    coa.CustomerId, coa.FirstName, coa.LastName, coa.AvgOrderAmount", 'q7_s2': "FROM (\n    SELECT \n        c.Id AS CustomerId, c.FirstName, c.LastName, ROUND(AVG(o.TotalAmount),2) AS AvgOrderAmount\n    FROM \n        customer c\n        JOIN orders o ON c.Id = o.CustomerId\n    GROUP BY \n        c.Id, c.FirstName, c.LastName\n) AS coa", 'q7_s3': "WHERE \n    coa.AvgOrderAmount > ", 'q7_s1': "(SELECT AVG(TotalAmount) FROM orders);" }
+            },
+            {
+                question: "Find the top 5 products that contribute the most to revenue.",
+                query: "SELECT \n    ProductName, Revenue\nFROM (\n  SELECT \n    p.ProductName, ROUND(SUM(oi.UnitPrice * oi.Quantity),2) AS Revenue\n  FROM \n    product p\n    JOIN orderitem oi ON p.Id = oi.ProductId\n  GROUP BY \n    p.ProductName\n) AS ProductRevenue\nORDER BY \n    Revenue DESC\nLIMIT 5;",
+                plan: [
+                    "Join products to their order items to get price and quantity.",
+                    "Group by product and calculate total revenue (price * quantity).",
+                    "Order the products by their total revenue in descending order.",
+                    "Limit the result to the top 5."
+                ],
+                steps: [
+                    { segmentId: 'q8_s1', title: "Step 1: Calculate Revenue per Product", explanation: "The inner subquery joins `product` and `orderitem`, groups by product name, and calculates the total revenue for each product by multiplying `UnitPrice` by `Quantity` for each sale and then summing those values." },
+                    { segmentId: 'q8_s2', title: "Step 2: Select from Revenue Summary", explanation: "The outer query selects from the result of the inner query, which is aliased as `ProductRevenue`." },
+                    { segmentId: 'q8_s3', title: "Step 3: Order by Revenue", explanation: "We `ORDER BY Revenue DESC` to sort the products, placing the highest-grossing ones at the top." },
+                    { segmentId: 'q8_s4', title: "Step 4: Limit to Top 5", explanation: "Finally, `LIMIT 5` selects only the top 5 products from the sorted list, showing us the most profitable items." }
+                ],
+                querySegments: { 'q8_s2': "SELECT \n    ProductName, Revenue\nFROM (\n  ", 'q8_s1': "SELECT \n    p.ProductName, ROUND(SUM(oi.UnitPrice * oi.Quantity),2) AS Revenue\n  FROM \n    product p\n    JOIN orderitem oi ON p.Id = oi.ProductId\n  GROUP BY \n    p.ProductName\n) AS ProductRevenue", 'q8_s3': "ORDER BY \n    Revenue DESC", 'q8_s4': "LIMIT 5;" }
+            },
+            {
+                question: "Identify each supplier's best-selling product by quantity.",
+                query: "SELECT \n    CompanyName, ProductName, TotalQuantitySold\nFROM (\n  SELECT \n    s.CompanyName, p.ProductName, SUM(oi.Quantity) AS TotalQuantitySold,\n    RANK() OVER (PARTITION BY s.CompanyName ORDER BY SUM(oi.Quantity) DESC) AS rnk\n  FROM \n    supplier s\n    LEFT JOIN product p ON s.Id = p.SupplierId\n    LEFT JOIN orderitem oi ON p.Id = oi.ProductId\n  GROUP BY \n    s.Id, s.CompanyName, p.Id, p.ProductName\n) AS BestSellingProducts\nWHERE \n    rnk = 1;",
+                plan: [
+                    "Join suppliers to products and their order items.",
+                    "Group by supplier and product to sum the total quantity sold.",
+                    "Use `RANK()` to rank products for each supplier based on quantity.",
+                    "Select the top-ranked (rank = 1) product for each supplier."
+                ],
+                steps: [
+                    { segmentId: 'q9_s1', title: "Step 1: Rank Products Within Suppliers", explanation: "The inner query joins the tables, groups them to find the total quantity sold for each product by each supplier, and then uses the `RANK()` window function. `PARTITION BY s.CompanyName` restarts the ranking for each supplier, and `ORDER BY SUM(oi.Quantity) DESC` ranks their products by the highest quantity sold." },
+                    { segmentId: 'q9_s2', title: "Step 2: Select from Ranked Results", explanation: "The outer query selects from the results of this complex inner query, which is aliased as `BestSellingProducts`." },
+                    { segmentId: 'q9_s3', title: "Step 3: Filter for the Best Seller", explanation: "The `WHERE rnk = 1` clause filters the results, showing only the row with a rank of 1 for each supplier, which represents their best-selling product by quantity." }
+                ],
+                querySegments: { 'q9_s2': "SELECT \n    CompanyName, ProductName, TotalQuantitySold\nFROM (\n  ", 'q9_s1': "SELECT \n    s.CompanyName, p.ProductName, SUM(oi.Quantity) AS TotalQuantitySold,\n    RANK() OVER (PARTITION BY s.CompanyName ORDER BY SUM(oi.Quantity) DESC) AS rnk\n  FROM \n    supplier s\n    LEFT JOIN product p ON s.Id = p.SupplierId\n    LEFT JOIN orderitem oi ON p.Id = oi.ProductId\n  GROUP BY \n    s.Id, s.CompanyName, p.Id, p.ProductName\n) AS BestSellingProducts", 'q9_s3': "WHERE \n    rnk = 1;" }
+            }
+        ];
+
+        const queryListEl = document.getElementById('query-list');
+        const queryTitleEl = document.getElementById('query-title');
+        const sqlCodeEl = document.getElementById('sql-code');
+        const explanationContainerEl = document.getElementById('explanation-container');
+        const nextStepBtn = document.getElementById('next-step-btn');
+        const backStepBtn = document.getElementById('back-step-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const copyIconSvg = `<svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+
+        let currentQueryIndex = 0;
+        let currentStepIndex = -1;
+
+        function init() {
+            queryListEl.innerHTML = '';
+            queryData.forEach((query, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'query-list-item';
+                listItem.textContent = `Q${index + 1}: ${query.question}`;
+                listItem.dataset.index = index;
+                listItem.addEventListener('click', () => displayQuery(index));
+                queryListEl.appendChild(listItem);
+            });
+            displayQuery(0);
+        }
+
+        function displayQuery(index) {
+            currentQueryIndex = index;
+            currentStepIndex = -1;
+
+            document.querySelectorAll('.query-list-item').forEach(item => {
+                item.classList.toggle('active', parseInt(item.dataset.index) === index);
+            });
+
+            const query = queryData[index];
+            queryTitleEl.textContent = query.question;
+
+            const planHtml = `
+                <div class="action-plan">
+                    <h3>Action Plan</h3>
+                    <ul>
+                        ${query.plan.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            sqlCodeEl.innerHTML = planHtml;
+            
+            explanationContainerEl.innerHTML = '';
+            query.steps.forEach((step, stepIndex) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'explanation-step';
+                stepEl.id = `step-${stepIndex}`;
+                stepEl.innerHTML = `<h3>${step.title}</h3><p>${step.explanation}</p>`;
+                explanationContainerEl.appendChild(stepEl);
+            });
+
+            updateButtonStates();
+        }
+        
+        function updateButtonStates() {
+            const query = queryData[currentQueryIndex];
+            
+            backStepBtn.disabled = currentStepIndex <= 0;
+
+            if (currentStepIndex === -1) {
+                nextStepBtn.textContent = 'Start Explanation';
+                nextStepBtn.disabled = false;
+            } else if (currentStepIndex === query.steps.length - 1) {
+                if (currentQueryIndex === queryData.length - 1) {
+                    nextStepBtn.textContent = 'Start Over';
+                } else {
+                    nextStepBtn.textContent = 'Next Query';
+                }
+            } else {
+                nextStepBtn.textContent = 'Next Step';
+            }
+        }
+
+        function showNextStep() {
+            const query = queryData[currentQueryIndex];
+
+            if (currentStepIndex === -1) {
+                let segmentedQueryHtml = query.query;
+                // Create a sorted list of segment IDs to process them in order, preventing shorter segments from replacing parts of longer ones
+                const sortedSegmentIds = Object.keys(query.querySegments).sort((a, b) => query.query.indexOf(query.querySegments[b]) - query.query.indexOf(query.querySegments[a]));
+
+                for (const id of sortedSegmentIds) {
+                    const segment = query.querySegments[id];
+                    const escapedSegment = segment.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const replacement = `<span class="sql-segment hidden" id="${id}">${escapedSegment}</span>`;
+                    // Use a simple string replacement
+                    segmentedQueryHtml = segmentedQueryHtml.replace(segment, replacement);
+                }
+                sqlCodeEl.innerHTML = segmentedQueryHtml;
+            }
+
+            if (currentStepIndex >= 0) {
+                const prevStep = query.steps[currentStepIndex];
+                document.getElementById(prevStep.segmentId)?.classList.remove('highlight-sql');
+            }
+
+            currentStepIndex++;
+
+            if (currentStepIndex >= query.steps.length) {
+                let nextQueryIndex = currentQueryIndex + 1;
+                if (nextQueryIndex >= queryData.length) {
+                    nextQueryIndex = 0; // Loop back to the start
+                }
+                displayQuery(nextQueryIndex);
+                return;
+            }
+
+            const currentStep = query.steps[currentStepIndex];
+            
+            const segmentEl = document.getElementById(currentStep.segmentId);
+            if (segmentEl) {
+                segmentEl.classList.remove('hidden');
+                segmentEl.classList.add('highlight-sql');
+            }
+            
+            const stepEl = document.getElementById(`step-${currentStepIndex}`);
+            if (stepEl) {
+                stepEl.classList.add('visible');
+            }
+
+            updateButtonStates();
+        }
+        
+        function showPrevStep() {
+            const query = queryData[currentQueryIndex];
+            
+            if (currentStepIndex <= 0) return;
+
+            const currentStepInfo = query.steps[currentStepIndex];
+            const currentSegmentEl = document.getElementById(currentStepInfo.segmentId);
+            const currentExplanationEl = document.getElementById(`step-${currentStepIndex}`);
+
+            if (currentSegmentEl) {
+                currentSegmentEl.classList.remove('highlight-sql');
+                // Hide the segment again if it was the first time it was shown
+                const isFirstAppearance = !query.steps.slice(0, currentStepIndex).some(s => s.segmentId === currentStepInfo.segmentId);
+                if (isFirstAppearance) {
+                    currentSegmentEl.classList.add('hidden');
+                }
+            }
+            if (currentExplanationEl) {
+                currentExplanationEl.classList.remove('visible');
+            }
+            
+            currentStepIndex--;
+            
+            const newCurrentStep = query.steps[currentStepIndex];
+            document.getElementById(newCurrentStep.segmentId)?.classList.add('highlight-sql');
+
+            updateButtonStates();
+        }
+
+        function copyCodeToClipboard() {
+            const query = queryData[currentQueryIndex];
+            const textToCopy = query.query;
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed"; 
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                copyBtn.innerHTML = `<span class="copy-feedback">Copied!</span>`;
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                copyBtn.innerHTML = `<span class="copy-feedback">Failed!</span>`;
+            }
+            document.body.removeChild(textArea);
+
+            setTimeout(() => {
+                copyBtn.innerHTML = copyIconSvg;
+            }, 2000);
+        }
+
+        nextStepBtn.addEventListener('click', showNextStep);
+        backStepBtn.addEventListener('click', showPrevStep);
+        copyBtn.addEventListener('click', copyCodeToClipboard);
+        
+        window.onload = () => {
+            copyBtn.innerHTML = copyIconSvg;
+            init();
+        };
+    </script>
+
+</body>
+</html>

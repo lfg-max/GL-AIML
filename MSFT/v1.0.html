@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agents and Agentic Workflows with LLMs</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; color: #333; }
+        .slide { width: 90%; max-width: 900px; height: 90%; max-height: 600px; background-color: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; box-sizing: border-box; }
+        .slide.active { display: flex; }
+        h1 { font-size: 2.8em; color: #1a237e; margin: 0 0 10px 0; }
+        h2 { font-size: 2em; color: #004d40; margin: 0 0 20px 0; border-bottom: 3px solid #00796b; padding-bottom: 10px; }
+        h3 { font-size: 1.4em; color: #333; }
+        p, li { font-size: 1.2em; line-height: 1.6; }
+        ul { text-align: left; margin-top: 20px; max-width: 80%; }
+        .title-slide h1 { font-size: 3.2em; }
+        .title-slide h3 { color: #555; font-weight: normal; }
+        .footer { position: absolute; bottom: 20px; left: 20px; font-size: 0.9em; color: #888; }
+        .slide-number { position: absolute; bottom: 20px; right: 20px; font-size: 0.9em; color: #888; }
+        code { background-color: #eef; color: #d63384; padding: .2em .4em; border-radius: 4px; font-size: 0.9em; }
+        .pattern-container { display: flex; justify-content: space-around; width: 100%; margin-top: 30px; }
+        .pattern { width: 22%; text-align: center; }
+        .pattern .icon { font-size: 3em; }
+        .pattern h4 { margin: 10px 0 5px 0; color: #00796b; }
+        .pattern p { font-size: 0.9em; }
+        .columns { display: flex; width: 100%; justify-content: space-between; }
+        .column { width: 48%; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="slide active title-slide">
+    <h1>Agents and Agentic Workflows with LLMs</h1>
+    <h3>Harnessing Reasoning, Tools, and Automation</h3>
+    <p style="margin-top:40px;">[Your Name / Team Name]</p>
+    <div class="slide-number">1 / 7</div>
+</div>
+
+<div class="slide">
+    <h2>The Idea Behind Agents 🧠</h2>
+    <p>An LLM Agent is a system using an LLM as a <b>reasoning engine</b> to go beyond text generation.</p>
+    <p>It breaks down a complex goal into smaller steps and uses <b>external tools</b> to take actions, overcoming the LLM's limitations (like knowledge cutoffs).</p>
+    <img src="https://i.imgur.com/uR4YwV0.png" alt="Observe Think Act Loop" style="width: 70%; margin-top: 20px; border-radius: 8px;">
+    <div class="slide-number">2 / 7</div>
+</div>
+
+
+<div class="slide">
+    <h2>Agentic Design Patterns</h2>
+    <p>Common strategies for building robust agents.</p>
+    <div class="pattern-container">
+        <div class="pattern">
+            <div class="icon">📝</div>
+            <h4>Planning</h4>
+            <p>Decomposing a large task into a sequence of smaller, actionable steps before execution.</p>
+        </div>
+        <div class="pattern">
+            <div class="icon">🛠️</div>
+            <h4>Tool Use</h4>
+            <p>Giving the LLM access to external tools (e.g., search, calculator, APIs) to gather information or perform actions.</p>
+        </div>
+        <div class="pattern">
+            <div class="icon">🤔</div>
+            <h4>Reflection</h4>
+            <p>Allowing the agent to critique and refine its own outputs, creating a self-correction loop.</p>
+        </div>
+        <div class="pattern">
+            <div class="icon">🤖🤝🤖</div>
+            <h4>Multi-Agent</h4>
+            <p>Using multiple specialized agents that collaborate to solve a complex problem together.</p>
+        </div>
+    </div>
+    <div class="slide-number">3 / 7</div>
+</div>
+
+<div class="slide">
+    <h2>Business Use Cases & Limitations</h2>
+    <div class="columns">
+        <div class="column">
+            <h3 style="color:#00796b;">✅ Use Cases</h3>
+            <ul>
+                <li><b>Automated Customer Support:</b> Agents access order databases to process refunds or check status.</li>
+                <li><b>Data Analysis:</b> Agents query databases with natural language and generate reports.</li>
+                <li><b>Personalized Planning:</b> An agent can act as a travel planner, searching for flights and hotels that fit specific criteria (e.g., for a Spaniard in Japan looking for local trips).</li>
+                <li><b>DevOps & Coding:</b> Agents can write tests, debug code, or trigger deployment pipelines via APIs.</li>
+            </ul>
+        </div>
+        <div class="column">
+            <h3 style="color:#c62828;">❌ Limitations</h3>
+            <ul>
+                <li><b>Reliability:</b> The same prompt can produce different reasoning paths and results.</li>
+                <li><b>Cost:</b> Chained LLM calls can become expensive very quickly.</li>
+                <li><b>Security:</b> Granting an LLM access to tools that can execute code or modify data is a significant risk.</li>
+                <li><b>Complexity:</b> Debugging an agent's reasoning process is much harder than debugging traditional code.</li>
+            </ul>
+        </div>
+    </div>
+    <div class="slide-number">4 / 7</div>
+</div>
+
+<div class="slide">
+    <h2>Hands-on Demo 👨‍💻</h2>
+    <p>Let's build a simple research agent using the Hugging Face <code>huggingface_hub</code> library.</p>
+    <br>
+    <h3>Goal</h3>
+    <p>Create an agent that can answer a question about a current event by augmenting it with a <b>custom Wikipedia search tool</b>.</p>
+    <br>
+    <code><a href="https://colab.research.google.com/drive/1i5QzR2tJkLwY7pXvN9gB3cK8oF-Hj0rE?usp=sharing" target="_blank" style="color:inherit; text-decoration:none;">Open Demo in Google Colab</a></code>
+    <div class="slide-number">5 / 7</div>
+</div>
+
+<div class="slide">
+    <h2>Agent Implementation Walkthrough</h2>
+    <ul style="max-width: 90%;">
+        <li><b>Step 1: Setup Environment.</b> We will install <code>huggingface_hub</code>, <code>wikipedia</code>, and other necessary libraries.</li>
+        <li><b>Step 2: Initialize the Agent.</b> We'll instantiate <code>HfAgent</code> with an open-source LLM from the Hub (e.g., <code>HuggingFaceH4/starling-lm-7b-alpha</code>).</li>
+        <li><b>Step 3: Define a Custom Tool.</b> We'll write a simple Python function to search Wikipedia and wrap it with the <code>@tool</code> decorator so the agent can understand and use it.</li>
+        <li><b>Step 4: Run the Agent.</b> We will give the agent a prompt that requires external knowledge and watch it select and use our custom tool to find the answer.</li>
+    </ul>
+    <div class="slide-number">6 / 7</div>
+</div>
+
+<div class="slide title-slide">
+    <h1>Q&A</h1>
+    <h3>Thank You!</h3>
+    <div class="slide-number">7 / 7</div>
+</div>
+
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const showSlide = (n) => {
+        slides.forEach(slide => slide.classList.remove('active'));
+        slides[n].classList.add('active');
+    };
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        } else if (e.key === 'ArrowLeft') {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+    });
+</script>
+
+</body>
+</html>

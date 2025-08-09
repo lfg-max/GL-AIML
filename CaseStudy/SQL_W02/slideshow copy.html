@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Explanations - Dark Theme</title>
+    <style>
+        /* General Body Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #e0e0e0; /* Light text */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Slideshow Container */
+        .slideshow-container {
+            position: relative;
+            background-color: #1e1e1e; /* Slightly lighter dark for the container */
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            width: 90%;
+            max-width: 900px;
+            overflow: hidden;
+        }
+
+        /* Individual Slides */
+        .mySlides {
+            display: none;
+            padding: 40px 50px;
+            animation: fadeIn 0.8s;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: .4}
+            to {opacity: 1}
+        }
+
+        .slide-content h2 {
+            color: #bb86fc; /* A prominent color for titles */
+            border-bottom: 2px solid #bb86fc;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .slide-content h3 {
+            color: #e0e0e0;
+            margin-top: 25px;
+        }
+        
+        .slide-content hr {
+            border: 0;
+            height: 1px;
+            background-color: #444; /* Darker separator */
+            margin: 20px 0;
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            border: 1px solid #444;
+        }
+
+        code.sql {
+            white-space: pre;
+        }
+
+        /* Explanation Text */
+        .explanation-points {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .explanation-points li {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #b0b0b0; /* Slightly dimmer text for explanations */
+        }
+        .explanation-points strong {
+            color: #03dac6; /* A contrasting accent color */
+            font-weight: 600;
+        }
+        .explanation-points .plan-heading {
+            color: #e0e0e0;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .explanation-points ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+
+        /* Navigation Buttons */
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            margin-top: -22px;
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.3s ease;
+            border-radius: 0 5px 5px 0;
+            user-select: none;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .next {
+            right: 0;
+            border-radius: 5px 0 0 5px;
+        }
+
+        .prev:hover, .next:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Slide Counter */
+        .slide-number {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="slideshow-container">
+
+    <div class="mySlides">
+        <div class="slide-number">1 / 8</div>
+        <div class="slide-content">
+            <h2>Question 1: List the total sales for each year.</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    YEAR(invoice_date) AS YR, 
+    SUM(total_price)
+FROM 
+    invoice
+GROUP BY 
+    YEAR(invoice_date);
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Access the sales data from the `invoice` table.</li>
+                        <li>Isolate the year from each invoice date.</li>
+                        <li>Group all sales that occurred in the same year.</li>
+                        <li>Calculate the sum of sales for each yearly group.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM invoice`</strong> — This executes the first part of our plan. We specify the `invoice` table because it contains the `total_price` and `invoice_date` columns we need.</li>
+                <li><strong>Step 2: `GROUP BY YEAR(invoice_date)`</strong> — This executes the second and third parts of our plan. The `YEAR(invoice_date)` function extracts the year, and `GROUP BY` uses this result to bundle all records from the same year together into summary rows.</li>
+                <li><strong>Step 3: `SELECT YEAR(invoice_date) AS YR, SUM(total_price)`</strong> — This is the final step. For each group created previously, we select the year (aliased as `YR`) and calculate the total sales for that group using `SUM(total_price)`.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="mySlides">
+        <div class="slide-number">2 / 8</div>
+        <div class="slide-content">
+            <h2>Question 2: Check the distribution of the month wise sales for the year 2010.</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    MONTH(invoice_date) AS MTH, 
+    SUM(total_price)
+FROM 
+    invoice
+WHERE
+    YEAR(invoice_date) = 2010
+GROUP BY 
+    MONTH(invoice_date);
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Access the sales data from the `invoice` table.</li>
+                        <li>Filter this data to include only records from the year 2010.</li>
+                        <li>Isolate the month from each invoice date within the filtered data.</li>
+                        <li>Group the filtered sales by their month.</li>
+                        <li>Calculate the total sales for each monthly group.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM invoice`</strong> — We begin by selecting our data source, the `invoice` table, to fulfill the first step of our plan.</li>
+                <li><strong>Step 2: `WHERE YEAR(invoice_date) = 2010`</strong> — This executes our second step. It acts as a filter, ensuring that only rows where the invoice year is 2010 are processed by the rest of the query.</li>
+                <li><strong>Step 3: `GROUP BY MONTH(invoice_date)`</strong> — This addresses the third and fourth steps. It takes the filtered 2010 data, extracts the month using `MONTH()`, and then groups the records based on that month.</li>
+                <li><strong>Step 4: `SELECT MONTH(invoice_date) AS MTH, SUM(total_price)`</strong> — This is the final step. For each monthly group, we select the month number (`MTH`) and compute the total sales with `SUM(total_price)`, giving us the monthly sales distribution for 2010.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mySlides">
+        <div class="slide-number">3 / 8</div>
+        <div class="slide-content">
+            <h2>Question 3: List the full names of the customers in decreasing order of sales.</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    first_name || ' ' || last_name AS full_name, 
+    SUM(total_price)
+FROM 
+    customers
+    LEFT JOIN invoice USING(customer_id)
+GROUP BY 
+    full_name
+ORDER BY 
+    SUM(total_price) DESC;
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                 <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Combine customer information with their corresponding invoice data.</li>
+                        <li>Create a full name for each customer.</li>
+                        <li>Group all invoices by customer.</li>
+                        <li>Calculate the total spending for each customer.</li>
+                        <li>Sort the customers from highest to lowest spending.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM customers LEFT JOIN invoice USING(customer_id)`</strong> — This executes the first part of our plan. We join `customers` and `invoice` to link customers to their sales records. A `LEFT JOIN` is crucial here to ensure all customers are included, even if they have no invoices.</li>
+                <li><strong>Step 2: `GROUP BY full_name`</strong> — This addresses the third step. It groups all invoice records based on the customer's full name, preparing the data for aggregation.</li>
+                <li><strong>Step 3: `SELECT first_name || ' ' || last_name AS full_name, SUM(total_price)`</strong> — This executes the second and fourth steps. It constructs the `full_name` and then, for each customer group, calculates the total amount spent using `SUM(total_price)`.</li>
+                <li><strong>Step 4: `ORDER BY SUM(total_price) DESC`</strong> — This is the final step. It sorts the results in descending (`DESC`) order based on the total sales, showing the highest spenders at the top.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="mySlides">
+        <div class="slide-number">4 / 8</div>
+        <div class="slide-content">
+            <h2>Question 4: List all artists with their respective albums names, including artists with no albums.</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    artist.artist_name AS Artist,
+    album.title_name AS Album
+FROM 
+    artist
+    LEFT JOIN album ON album.artist_id = artist.artist_id;
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Start with a complete list of all artists.</li>
+                        <li>Connect artists to their albums.</li>
+                        <li>Ensure that artists without any albums are still included in the final list.</li>
+                        <li>Select the artist's name and the album's title for display.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM artist LEFT JOIN album ON album.artist_id = artist.artist_id`</strong> — This single clause executes the first three steps of our plan. We start with the `artist` table, connect it to the `album` table, and use a `LEFT JOIN`. This join type ensures every artist from the `artist` table is kept; if no album exists, the album columns will be `NULL`.</li>
+                <li><strong>Step 2: `SELECT artist.artist_name AS Artist, album.title_name AS Album`</strong> — This is the final step. For each row generated by the join, we select the artist's name and the corresponding album title. For artists without albums, the `Album` column will correctly display `NULL`.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mySlides">
+        <div class="slide-number">5 / 8</div>
+        <div class="slide-content">
+            <h2>Question 5: Display each artist along with the count of albums they have produced.</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    artist.artist_name AS Artist, 
+    COUNT(album.album_id) AS Album_Count
+FROM 
+    artist
+    LEFT JOIN album ON artist.artist_id = album.artist_id
+GROUP BY 
+    artist.artist_name;
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                 <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Get a list of all artists.</li>
+                        <li>Link each artist to their albums, making sure to include artists with zero albums.</li>
+                        <li>Group the results by artist.</li>
+                        <li>For each artist, count the number of associated albums.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM artist LEFT JOIN album ...`</strong> — This accomplishes the first two steps. It creates a combined list of artists and their albums using a `LEFT JOIN` to ensure no artist is left out, even those with zero albums.</li>
+                <li><strong>Step 2: `GROUP BY artist.artist_name`</strong> — This executes the third step of our plan. It creates a single summary row for each unique artist name, preparing for the count.</li>
+                <li><strong>Step 3: `SELECT ..., COUNT(album.album_id) AS Album_Count`</strong> — This is the final step. For each artist group, `COUNT(album.album_id)` counts the associated albums. It specifically counts a column from the `album` table so that it correctly returns 0 for artists with no albums (where `album_id` would be `NULL`).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mySlides">
+        <div class="slide-number">6 / 8</div>
+        <div class="slide-content">
+            <h2>Question 6: Identify the total revenue for each album.</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT
+    al.title_name AS album_title,
+    SUM(ii.unit_price * ii.quantity) AS total_revenue
+FROM
+    invoice_items ii
+    INNER JOIN tracks t ON ii.track_id = t.track_id
+    INNER JOIN album al ON t.album_id = al.album_id
+GROUP BY
+    al.title_name;
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Start with sales line items, which contain quantity and price.</li>
+                        <li>Link each line item to the specific track that was sold.</li>
+                        <li>Link each track to its parent album.</li>
+                        <li>Group all sales by album title.</li>
+                        <li>For each album group, calculate the total revenue.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM invoice_items ii`</strong> — This starts our plan. We use `invoice_items` as our base because it contains the core sales data (price and quantity) for our calculation.</li>
+                <li><strong>Step 2: `INNER JOIN tracks t ... INNER JOIN album al ...`</strong> — This chain of joins executes steps two and three. We first link sales to `tracks` to see which track was sold, then link `tracks` to `album` to find the parent album. This connects a sale all the way to an album.</li>
+                <li><strong>Step 3: `GROUP BY al.title_name`</strong> — This executes the fourth step. It groups all the individual track sales together based on their album's title, so we can perform a calculation for each album.</li>
+                <li><strong>Step 4: `SUM(ii.unit_price * ii.quantity)`</strong> — This is the final step. For each album group, it calculates the revenue for each line item (`unit_price * quantity`) and then adds them all up using `SUM()`, giving us the total revenue per album.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mySlides">
+        <div class="slide-number">7 / 8</div>
+        <div class="slide-content">
+            <h2>Question 7: What are the most popular genres in each country?</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    c.customer_country, 
+    g.genre_name, 
+    COUNT(ii.invoice_line_id) AS purchase_count
+FROM 
+    invoice_items ii
+    JOIN invoice i ON ii.invoice_id = i.invoice_id
+    JOIN customers c ON i.customer_id = c.customer_id
+    JOIN tracks t ON ii.track_id = t.track_id
+    JOIN genre g ON t.genre_id = g.genre_id
+GROUP BY 
+    c.customer_country, 
+    g.genre_name
+ORDER BY 
+    c.customer_country, 
+    purchase_count DESC;
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Link individual purchases to customer data to find the country.</li>
+                        <li>Link those same purchases to track data to find the genre.</li>
+                        <li>Group the data by each unique combination of country and genre.</li>
+                        <li>Count the number of purchases within each group.</li>
+                        <li>Sort the results to rank genres by popularity within each country.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM invoice_items ii JOIN ... JOIN genre g ...`</strong> — This chain of `JOIN`s executes the first two steps. It creates a unified dataset that links every purchase (`invoice_items`) to both the customer's country and the track's genre.</li>
+                <li><strong>Step 2: `GROUP BY c.customer_country, g.genre_name`</strong> — This executes the third step. It creates a unique group for every combination of a country and a genre (e.g., 'USA - Rock', 'Germany - Classical').</li>
+                <li><strong>Step 3: `COUNT(ii.invoice_line_id) AS purchase_count`</strong> — This is the fourth step. For each country-genre group, it counts the number of individual purchases, giving us the popularity of that genre in that country.</li>
+                <li><strong>Step 4: `ORDER BY c.customer_country, purchase_count DESC`</strong> — This is the final step. It organizes the output first by country, and then *within* each country, it sorts the genres from most purchased to least purchased (`DESC`).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mySlides">
+        <div class="slide-number">8 / 8</div>
+        <div class="slide-content">
+            <h2>Question 8: Which artists are the most popular in each country?</h2>
+            <hr>
+            <h3>SQL Query:</h3>
+            <pre><code class="sql">
+SELECT 
+    c.customer_country, 
+    ar.artist_name, 
+    COUNT(ii.invoice_line_id) AS purchase_count
+FROM 
+    invoice_items ii
+    JOIN invoice i ON ii.invoice_id = i.invoice_id
+    JOIN customers c ON i.customer_id = c.customer_id
+    JOIN tracks t ON ii.track_id = t.track_id
+    JOIN album al ON t.album_id = al.album_id
+    JOIN artist ar ON al.artist_id = ar.artist_id
+GROUP BY 
+    c.customer_country, 
+    ar.artist_name
+ORDER BY 
+    c.customer_country, 
+    purchase_count DESC;
+            </code></pre>
+            <h3>Explanation:</h3>
+            <ul class="explanation-points">
+                 <li>
+                    <div class="plan-heading">Action Plan:</div>
+                    <ul>
+                        <li>Link individual purchases to customer data to determine the country.</li>
+                        <li>Link those same purchases through tracks and albums to identify the artist.</li>
+                        <li>Group the data by each unique combination of country and artist.</li>
+                        <li>Count the number of purchases for each group.</li>
+                        <li>Sort the results to rank artists by popularity within each country.</li>
+                    </ul>
+                </li>
+                <li><strong>Step 1: `FROM invoice_items ii JOIN ... JOIN artist ar ...`</strong> — This long chain of `JOIN`s executes the first two steps. It connects the purchase data in `invoice_items` all the way to the customer's country and the artist's name.</li>
+                <li><strong>Step 2: `GROUP BY c.customer_country, ar.artist_name`</strong> — This accomplishes the third step. It creates a unique group for every artist within every country (e.g., 'Canada - U2', 'Brazil - Queen').</li>
+                <li><strong>Step 3: `COUNT(ii.invoice_line_id) AS purchase_count`</strong> — This is the fourth step. It counts the number of tracks sold for each artist in each country, providing a clear metric for their popularity.</li>
+                <li><strong>Step 4: `ORDER BY c.customer_country, purchase_count DESC`</strong> — This is the final step. It sorts the entire result set first by country, and then, for each country, it sorts the artists by purchase count in descending order, providing a ranked list.</li>
+            </ul>
+        </div>
+    </div>
+
+    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+</div>
+
+<script>
+    let slideIndex = 1;
+    showSlides(slideIndex);
+
+    // Next/previous controls
+    function plusSlides(n) {
+        showSlides(slideIndex += n);
+    }
+
+    function showSlides(n) {
+        let i;
+        let slides = document.getElementsByClassName("mySlides");
+        if (n > slides.length) {slideIndex = 1}
+        if (n < 1) {slideIndex = slides.length}
+        for (i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+        slides[slideIndex-1].style.display = "block";
+    }
+</script>
+
+</body>
+</html>
+```

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive SQL Explainer - Dark Theme</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --primary-surface-color: #1e1e1e;
+            --secondary-surface-color: #2a2a2a;
+            --text-color: #e0e0e0;
+            --text-muted-color: #a0a0a0;
+            --primary-accent-color: #bb86fc;
+            --secondary-accent-color: #03dac6;
+            --border-color: #333;
+            --highlight-bg: rgba(187, 134, 252, 0.2);
+            --highlight-border: #bb86fc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Left Panel: Query List */
+        .query-list-panel {
+            width: 30%;
+            max-width: 350px;
+            background-color: var(--primary-surface-color);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .query-list-panel h1 {
+            color: var(--primary-accent-color);
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid var(--primary-accent-color);
+            padding-bottom: 10px;
+        }
+
+        .query-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .query-list-item {
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+        }
+
+        .query-list-item:hover {
+            background-color: var(--secondary-surface-color);
+        }
+
+        .query-list-item.active {
+            background-color: var(--highlight-bg);
+            border-left: 4px solid var(--primary-accent-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Right Panel: Content Display */
+        .content-panel {
+            flex-grow: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+        }
+
+        .query-title {
+            color: var(--secondary-accent-color);
+            font-size: 28px;
+            margin-top: 0;
+        }
+
+        /* SQL Code Block */
+        .sql-code-container {
+            background-color: #282c34;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            min-height: 200px; /* Ensure container has a minimum height */
+            display: flex;
+            align-items: center;
+        }
+
+        .sql-code {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 16px;
+            white-space: pre-wrap;
+            color: #abb2bf;
+            width: 100%;
+        }
+
+        .sql-code .sql-segment {
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .sql-code .sql-segment.hidden {
+            visibility: hidden; /* Hide segments until they are revealed */
+        }
+
+        .sql-code .highlight-sql {
+            background-color: var(--highlight-bg);
+            box-shadow: 0 0 0 2px var(--highlight-border);
+            color: white;
+        }
+        
+        /* Action Plan Styling */
+        .action-plan {
+            color: var(--text-muted-color);
+            text-align: left;
+            width: 100%;
+        }
+        .action-plan h3 {
+            color: var(--secondary-accent-color);
+            margin-top: 0;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 18px;
+        }
+        .action-plan ul {
+            list-style-type: '» ';
+            padding-left: 25px;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .action-plan li {
+            padding-bottom: 10px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        .action-plan li:last-child {
+            padding-bottom: 0;
+        }
+
+
+        /* Explanation Section */
+        .explanation-container {
+            margin-top: 30px;
+        }
+
+        .explanation-step {
+            background-color: var(--primary-surface-color);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--secondary-accent-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .explanation-step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .explanation-step h3 {
+            margin-top: 0;
+            color: var(--secondary-accent-color);
+        }
+        
+        .explanation-step p {
+            margin-bottom: 0;
+            line-height: 1.6;
+            color: var(--text-muted-color);
+        }
+        
+        .explanation-step code {
+            background-color: #333;
+            color: var(--secondary-accent-color);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+
+        /* Control Button */
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .control-btn {
+            background-color: var(--primary-accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .control-btn:hover {
+            background-color: #a968f5;
+        }
+        
+        .control-btn:active {
+            transform: scale(0.98);
+        }
+
+        .control-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .query-list-panel {
+                width: 100%;
+                max-width: none;
+                height: 40%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .content-panel {
+                height: 60%;
+                padding: 20px;
+            }
+            .query-title {
+                font-size: 22px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="query-list-panel">
+            <h1>SQL Queries</h1>
+            <ul class="query-list" id="query-list">
+                <!-- Query items will be populated by JavaScript -->
+            </ul>
+        </div>
+        <div class="content-panel" id="content-panel">
+            <h2 class="query-title" id="query-title"></h2>
+            
+            <div class="sql-code-container">
+                <pre><code class="sql-code" id="sql-code"></code></pre>
+            </div>
+
+            <div class="explanation-container" id="explanation-container">
+                <!-- Explanation steps will be populated by JavaScript -->
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="next-step-btn">Start Explanation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const queryData = [
+            // Query 1
+            {
+                question: "List the total sales for each year.",
+                query: "SELECT \n    YEAR(invoice_date) AS YR, \n    SUM(total_price)\nFROM \n    invoice\nGROUP BY \n    YEAR(invoice_date);",
+                plan: [
+                    "Access the sales data from the `invoice` table.",
+                    "Group all sales that occurred in the same year.",
+                    "For each year, calculate the sum of `total_price`."
+                ],
+                steps: [
+                    { segmentId: 'q1_s1', title: "Step 1: Specify the Data Source", explanation: "We start by telling the database which table to get data from. The `invoice` table contains the sales records we need, specifically the `invoice_date` and `total_price`." },
+                    { segmentId: 'q1_s2', title: "Step 2: Group the Data", explanation: "To sum sales by year, we must first group all records from the same year together. The `GROUP BY` clause combined with `YEAR(invoice_date)` achieves this, creating a separate group for each year found in the table." },
+                    { segmentId: 'q1_s3', title: "Step 3: Select and Aggregate", explanation: "Finally, for each yearly group, we select the year itself using `YEAR(invoice_date)` and calculate the total sales for that group using the aggregate function `SUM(total_price)`." }
+                ],
+                querySegments: { 'q1_s3': "SELECT \n    YEAR(invoice_date) AS YR, \n    SUM(total_price)", 'q1_s1': "FROM \n    invoice", 'q1_s2': "GROUP BY \n    YEAR(invoice_date);" }
+            },
+            // Query 2
+            {
+                question: "Check the distribution of the month wise sales for the year 2010.",
+                query: "SELECT \n    MONTH(invoice_date) AS MTH, \n    SUM(total_price)\nFROM \n    invoice\nWHERE\n    YEAR(invoice_date) = 2010\nGROUP BY \n    MONTH(invoice_date);",
+                plan: [
+                    "Access the sales data from the `invoice` table.",
+                    "Filter this data to include only records from the year 2010.",
+                    "Group the filtered sales by their month.",
+                    "Calculate the total sales for each monthly group."
+                ],
+                steps: [
+                    { segmentId: 'q2_s1', title: "Step 1: Specify the Data Source", explanation: "As before, we begin with the `invoice` table, which holds all the sales data required for our analysis." },
+                    { segmentId: 'q2_s2', title: "Step 2: Filter for the Year 2010", explanation: "The `WHERE` clause is crucial here. It filters the entire table *before* any grouping occurs, ensuring that only records where the invoice year is 2010 are considered for the next steps." },
+                    { segmentId: 'q2_s3', title: "Step 3: Group by Month", explanation: "Now, taking only the 2010 data, we group the records by month using `GROUP BY MONTH(invoice_date)`. This creates a unique group for each month within that year." },
+                    { segmentId: 'q2_s4', title: "Step 4: Select and Calculate", explanation: "For each monthly group, we select the month number (`MONTH(invoice_date)`) and calculate the total sales for that month using `SUM(total_price)`." }
+                ],
+                querySegments: { 'q2_s4': "SELECT \n    MONTH(invoice_date) AS MTH, \n    SUM(total_price)", 'q2_s1': "FROM \n    invoice", 'q2_s2': "WHERE\n    YEAR(invoice_date) = 2010", 'q2_s3': "GROUP BY \n    MONTH(invoice_date);" }
+            },
+            // Query 3
+            {
+                question: "List customer names in decreasing order of sales.",
+                query: "SELECT \n    first_name || ' ' || last_name AS full_name, \n    SUM(total_price)\nFROM \n    customers\n    LEFT JOIN invoice USING(customer_id)\nGROUP BY \n    full_name\nORDER BY \n    SUM(total_price) DESC;",
+                plan: [
+                    "Combine `customers` and `invoice` tables, keeping all customers.",
+                    "Group all invoices by the customer's full name.",
+                    "Calculate the total spending for each customer.",
+                    "Sort the customers from highest to lowest spending."
+                ],
+                steps: [
+                    { segmentId: 'q3_s1', title: "Step 1: Join Customer and Invoice Data", explanation: "We must combine `customers` (for names) and `invoice` (for sales). A `LEFT JOIN` is used to ensure all customers are included, even those with zero purchases." },
+                    { segmentId: 'q3_s2', title: "Step 2: Group by Customer", explanation: "The `GROUP BY full_name` clause gathers all invoices belonging to the same customer into a single summary row, allowing us to sum up their total spending." },
+                    { segmentId: 'q3_s3', title: "Step 3: Select Name and Calculate Total Sales", explanation: "We create a `full_name` by concatenating `first_name` and `last_name`. Then, for each customer group, `SUM(total_price)` calculates their total spending." },
+                    { segmentId: 'q3_s4', title: "Step 4: Order the Results", explanation: "Finally, `ORDER BY ... DESC` sorts the customers from the highest total sales to the lowest, showing the most valuable customers at the top." }
+                ],
+                querySegments: { 'q3_s3': "SELECT \n    first_name || ' ' || last_name AS full_name, \n    SUM(total_price)", 'q3_s1': "FROM \n    customers\n    LEFT JOIN invoice USING(customer_id)", 'q3_s2': "GROUP BY \n    full_name", 'q3_s4': "ORDER BY \n    SUM(total_price) DESC;" }
+            },
+            // Query 4
+            {
+                question: "List artists and their albums, including artists with no albums.",
+                query: "SELECT \n    artist.artist_name AS Artist,\n    album.title_name AS Album\nFROM \n    artist\n    LEFT JOIN album ON album.artist_id = artist.artist_id;",
+                plan: [
+                    "Start with a complete list of all artists from the `artist` table.",
+                    "Connect artists to their albums using a `LEFT JOIN`.",
+                    "Select the artist's name and the album's title."
+                ],
+                steps: [
+                    { segmentId: 'q4_s1', title: "Step 1: Join Artist and Album Tables", explanation: "We start with the `artist` table and `LEFT JOIN` it to the `album` table. Using `LEFT JOIN` is key because it guarantees that every artist from the left table (`artist`) will be included in the result, regardless of whether they have a matching album." },
+                    { segmentId: 'q4_s2', title: "Step 2: Select the Desired Columns", explanation: "We then select the artist's name and the album's title. For artists who have no albums, the `Album` column will automatically be filled with `NULL`, which is exactly what we want." }
+                ],
+                querySegments: { 'q4_s2': "SELECT \n    artist.artist_name AS Artist,\n    album.title_name AS Album", 'q4_s1': "FROM \n    artist\n    LEFT JOIN album ON album.artist_id = artist.artist_id;" }
+            },
+            // Query 5
+            {
+                question: "Count the number of albums for each artist.",
+                query: "SELECT \n    artist.artist_name AS Artist, \n    COUNT(album.album_id) AS Album_Count\nFROM \n    artist\n    LEFT JOIN album ON artist.artist_id = album.artist_id\nGROUP BY \n    artist.artist_name;",
+                plan: [
+                    "Link `artist` to `album` tables, keeping all artists.",
+                    "Group the results by artist name.",
+                    "For each artist, count their associated albums."
+                ],
+                steps: [
+                    { segmentId: 'q5_s1', title: "Step 1: Join Artist and Album Tables", explanation: "Similar to the previous query, we use a `LEFT JOIN` to connect `artist` and `album`. This ensures all artists are included in our initial dataset, which is necessary before counting." },
+                    { segmentId: 'q5_s2', title: "Step 2: Group by Artist", explanation: "We use `GROUP BY artist.artist_name` to create a single summary row for each artist. This allows the `COUNT` function to work on a per-artist basis." },
+                    { segmentId: 'q5_s3', title: "Step 3: Select Artist and Count Albums", explanation: "For each artist group, we select the name and use `COUNT(album.album_id)`. Counting a column from the `album` table is important, as it will correctly result in `0` for artists with no albums (where `album_id` would be `NULL` for them)." }
+                ],
+                querySegments: { 'q5_s3': "SELECT \n    artist.artist_name AS Artist, \n    COUNT(album.album_id) AS Album_Count", 'q5_s1': "FROM \n    artist\n    LEFT JOIN album ON artist.artist_id = album.artist_id", 'q5_s2': "GROUP BY \n    artist.artist_name;" }
+            },
+            // Query 6
+            {
+                question: "Identify the total revenue for each album.",
+                query: "SELECT\n    al.title_name AS album_title,\n    SUM(ii.unit_price * ii.quantity) AS total_revenue\nFROM\n    invoice_items ii\n    INNER JOIN tracks t ON ii.track_id = t.track_id\n    INNER JOIN album al ON t.album_id = al.album_id\nGROUP BY\n    al.title_name;",
+                plan: [
+                    "Link sales (`invoice_items`) to `tracks` and then to `album`.",
+                    "Group all sales by the album's title.",
+                    "For each album, calculate revenue (`price * quantity`) and sum it up."
+                ],
+                steps: [
+                    { segmentId: 'q6_s1', title: "Step 1: Chain Joins to Link Sales to Albums", explanation: "We start from `invoice_items` (which has price/quantity) and `INNER JOIN` through `tracks` to finally reach the `album` table. This chain connects each individual sale to its parent album." },
+                    { segmentId: 'q6_s2', title: "Step 2: Group by Album Title", explanation: "With the data linked, we `GROUP BY al.title_name` to collect all sales related to the same album into a single group for calculation." },
+                    { segmentId: 'q6_s3', title: "Step 3: Calculate and Select Revenue", explanation: "For each album group, we calculate the revenue per line item (`unit_price * quantity`) and then sum these values with `SUM()` to get the total revenue for the entire album." }
+                ],
+                querySegments: { 'q6_s3': "SELECT\n    al.title_name AS album_title,\n    SUM(ii.unit_price * ii.quantity) AS total_revenue", 'q6_s1': "FROM\n    invoice_items ii\n    INNER JOIN tracks t ON ii.track_id = t.track_id\n    INNER JOIN album al ON t.album_id = al.album_id", 'q6_s2': "GROUP BY\n    al.title_name;" }
+            },
+            // Query 7
+            {
+                question: "Find the most popular genres in each country.",
+                query: "SELECT \n    c.customer_country, \n    g.genre_name, \n    COUNT(ii.invoice_line_id) AS purchase_count\nFROM \n    invoice_items ii\n    JOIN invoice i ON ii.invoice_id = i.invoice_id\n    JOIN customers c ON i.customer_id = c.customer_id\n    JOIN tracks t ON ii.track_id = t.track_id\n    JOIN genre g ON t.genre_id = g.genre_id\nGROUP BY \n    c.customer_country, \n    g.genre_name\nORDER BY \n    c.customer_country, \n    purchase_count DESC;",
+                plan: [
+                    "Link purchases to customer country and track genre via multiple joins.",
+                    "Group data by each unique combination of country and genre.",
+                    "Count the number of purchases within each group.",
+                    "Sort the results to rank genres by popularity within each country."
+                ],
+                steps: [
+                    { segmentId: 'q7_s1', title: "Step 1: Join All Necessary Tables", explanation: "This requires a complex join across five tables to link a purchase (`invoice_items`) to a customer's country (`customers`) and a track's genre (`genre`)." },
+                    { segmentId: 'q7_s2', title: "Step 2: Group by Country and Genre", explanation: "We `GROUP BY` two columns to create unique groups for each combination of a country and a genre (e.g., 'USA - Rock', 'Germany - Classical')." },
+                    { segmentId: 'q7_s3', title: "Step 3: Count Purchases", explanation: "For each unique group, `COUNT(ii.invoice_line_id)` counts the number of tracks sold, giving us a popularity metric." },
+                    { segmentId: 'q7_s4', title: "Step 4: Order for Ranking", explanation: "We `ORDER BY` country first, and then by the purchase count in descending order. This effectively ranks the genres by popularity within each country." }
+                ],
+                querySegments: { 'q7_s3': "SELECT \n    c.customer_country, \n    g.genre_name, \n    COUNT(ii.invoice_line_id) AS purchase_count", 'q7_s1': "FROM \n    invoice_items ii\n    JOIN invoice i ON ii.invoice_id = i.invoice_id\n    JOIN customers c ON i.customer_id = c.customer_id\n    JOIN tracks t ON ii.track_id = t.track_id\n    JOIN genre g ON t.genre_id = g.genre_id", 'q7_s2': "GROUP BY \n    c.customer_country, \n    g.genre_name", 'q7_s4': "ORDER BY \n    c.customer_country, \n    purchase_count DESC;" }
+            },
+            // Query 8
+            {
+                question: "Find the most popular artists in each country.",
+                query: "SELECT \n    c.customer_country, \n    ar.artist_name, \n    COUNT(ii.invoice_line_id) AS purchase_count\nFROM \n    invoice_items ii\n    JOIN invoice i ON ii.invoice_id = i.invoice_id\n    JOIN customers c ON i.customer_id = c.customer_id\n    JOIN tracks t ON ii.track_id = t.track_id\n    JOIN album al ON t.album_id = al.album_id\n    JOIN artist ar ON al.artist_id = ar.artist_id\nGROUP BY \n    c.customer_country, \n    ar.artist_name\nORDER BY \n    c.customer_country, \n    purchase_count DESC;",
+                plan: [
+                    "Link purchases to customer country and artist name via multiple joins.",
+                    "Group data by each unique combination of country and artist.",
+                    "Count the number of purchases for each group.",
+                    "Sort results to rank artists by popularity within each country."
+                ],
+                steps: [
+                    { segmentId: 'q8_s1', title: "Step 1: Join All Necessary Tables", explanation: "This is the most complex join, linking a sale (`invoice_items`) all the way to a customer's country and the track's artist (via `tracks`, `album`, and `artist`)." },
+                    { segmentId: 'q8_s2', title: "Step 2: Group by Country and Artist", explanation: "We group by both country and artist name to create unique buckets for each artist's performance in each country (e.g., 'Brazil - Queen')." },
+                    { segmentId: 'q8_s3', title: "Step 3: Count Purchases", explanation: "As before, `COUNT` is used to tally the number of sales for each artist within each country." },
+                    { segmentId: 'q8_s4', title: "Step 4: Order for Ranking", explanation: "Finally, we sort by country, and then by purchase count descending, to get a clear ranked list of artist popularity for every country." }
+                ],
+                querySegments: { 'q8_s3': "SELECT \n    c.customer_country, \n    ar.artist_name, \n    COUNT(ii.invoice_line_id) AS purchase_count", 'q8_s1': "FROM \n    invoice_items ii\n    JOIN invoice i ON ii.invoice_id = i.invoice_id\n    JOIN customers c ON i.customer_id = c.customer_id\n    JOIN tracks t ON ii.track_id = t.track_id\n    JOIN album al ON t.album_id = al.album_id\n    JOIN artist ar ON al.artist_id = ar.artist_id", 'q8_s2': "GROUP BY \n    c.customer_country, \n    ar.artist_name", 'q8_s4': "ORDER BY \n    c.customer_country, \n    purchase_count DESC;" }
+            }
+        ];
+
+        const queryListEl = document.getElementById('query-list');
+        const queryTitleEl = document.getElementById('query-title');
+        const sqlCodeEl = document.getElementById('sql-code');
+        const explanationContainerEl = document.getElementById('explanation-container');
+        const nextStepBtn = document.getElementById('next-step-btn');
+
+        let currentQueryIndex = 0;
+        let currentStepIndex = -1;
+
+        function init() {
+            queryListEl.innerHTML = '';
+            queryData.forEach((query, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'query-list-item';
+                listItem.textContent = `Q${index + 1}: ${query.question}`;
+                listItem.dataset.index = index;
+                listItem.addEventListener('click', () => displayQuery(index));
+                queryListEl.appendChild(listItem);
+            });
+            displayQuery(0);
+        }
+
+        function displayQuery(index) {
+            currentQueryIndex = index;
+            currentStepIndex = -1;
+
+            document.querySelectorAll('.query-list-item').forEach(item => {
+                item.classList.toggle('active', parseInt(item.dataset.index) === index);
+            });
+
+            const query = queryData[index];
+            queryTitleEl.textContent = query.question;
+
+            // Display the action plan in the code container
+            const planHtml = `
+                <div class="action-plan">
+                    <h3>Action Plan</h3>
+                    <ul>
+                        ${query.plan.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            sqlCodeEl.innerHTML = planHtml;
+            
+            // Clear previous explanations and add new ones (initially hidden)
+            explanationContainerEl.innerHTML = '';
+            query.steps.forEach((step, stepIndex) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'explanation-step';
+                stepEl.id = `step-${stepIndex}`;
+                stepEl.innerHTML = `<h3>${step.title}</h3><p>${step.explanation}</p>`;
+                explanationContainerEl.appendChild(stepEl);
+            });
+
+            nextStepBtn.textContent = 'Start Explanation';
+            nextStepBtn.disabled = false;
+        }
+
+        function showNextStep() {
+            const query = queryData[currentQueryIndex];
+
+            // One-time setup on first click to replace plan with query structure
+            if (currentStepIndex === -1) {
+                let segmentedQueryHtml = query.query;
+                for (const [id, segment] of Object.entries(query.querySegments)) {
+                    const escapedSegment = segment.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const replacement = `<span class="sql-segment hidden" id="${id}">${escapedSegment}</span>`;
+                    segmentedQueryHtml = segmentedQueryHtml.replace(segment, replacement);
+                }
+                sqlCodeEl.innerHTML = segmentedQueryHtml;
+            }
+
+            // Remove highlight from previous step
+            if (currentStepIndex >= 0) {
+                const prevStep = query.steps[currentStepIndex];
+                document.getElementById(prevStep.segmentId)?.classList.remove('highlight-sql');
+            }
+
+            currentStepIndex++;
+
+            // If we've gone past the last step, reset the whole view
+            if (currentStepIndex >= query.steps.length) {
+                displayQuery(currentQueryIndex);
+                return;
+            }
+
+            // Process the current step
+            const currentStep = query.steps[currentStepIndex];
+            
+            // Make the SQL segment visible and highlight it
+            const segmentEl = document.getElementById(currentStep.segmentId);
+            if (segmentEl) {
+                segmentEl.classList.remove('hidden');
+                segmentEl.classList.add('highlight-sql');
+            }
+            
+            // Make the explanation text visible
+            const stepEl = document.getElementById(`step-${currentStepIndex}`);
+            if (stepEl) {
+                stepEl.classList.add('visible');
+            }
+
+            // Update the button text
+            if (currentStepIndex === query.steps.length - 1) {
+                nextStepBtn.textContent = 'Reset Explanation';
+            } else {
+                nextStepBtn.textContent = `Next Step (${currentStepIndex + 2}/${query.steps.length})`;
+            }
+        }
+
+        nextStepBtn.addEventListener('click', showNextStep);
+        window.onload = init;
+    </script>
+
+</body>
+</html>

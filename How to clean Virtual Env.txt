@@ -13,3 +13,13 @@ pip uninstall -r installed_packages.txt -y
 Check if the packages are uninstalled.
 pip list
      
+
+
+
+
+HAHAHAHAHA
+
+12-Aug
+
+Use CoPilot Agentic mode and just ask it to clean it for you.  It will :D
+

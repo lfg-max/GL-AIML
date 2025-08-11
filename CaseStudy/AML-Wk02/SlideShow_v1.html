@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boosting Algorithms Explained</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .slide {
+            display: none;
+            min-height: 80vh;
+        }
+        .slide.active {
+            display: block;
+        }
+        .slide-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        code {
+            background-color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .formula {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .explanation {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+            color: #b45309;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #cbd5e0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div id="slideshow-container" class="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <!-- Slides will be injected here by JavaScript -->
+    </div>
+
+    <div class="flex items-center justify-between w-full max-w-5xl mt-6">
+        <div id="slide-counter" class="text-gray-600 text-sm font-medium"></div>
+        <div class="flex space-x-4">
+            <button id="prevBtn" class="px-6 py-2 bg-white text-gray-700 font-semibold rounded-lg shadow-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+            <button id="nextBtn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const slides = [
+            // Slide 1: Title
+            {
+                title: "Boosting Algorithms: A Deep Dive",
+                content: `
+                    <h2 class="text-5xl font-bold text-blue-700 mb-4">Boosting Algorithms</h2>
+                    <p class="text-2xl text-gray-600">From AdaBoost to GBM and XGBoost</p>
+                    <div class="mt-12 border-t pt-4">
+                        <p class="text-lg">A comprehensive guide for your one-hour presentation.</p>
+                    </div>
+                `
+            },
+            // Slide 2: Agenda
+            {
+                title: "Agenda",
+                content: `
+                    <h3 class="text-3xl font-bold mb-6 text-gray-800">Talk Outline</h3>
+                    <ul class="list-disc list-inside space-y-3 text-lg text-left mx-auto max-w-2xl">
+                        <li><b>Introduction:</b> What is Ensemble Learning & Boosting?</li>
+                        <li><b>AdaBoost:</b> The Foundational Algorithm</li>
+                        <li><b>Gradient Boosting (GBM):</b> Learning from Mistakes</li>
+                        <li><b>XGBoost:</b> The Champion of Competitions</li>
+                        <li><b>Comparison:</b> AdaBoost vs. GBM vs. XGBoost</li>
+                        <li><b>Conclusion & Q&A</b></li>
+                    </ul>
+                `
+            },
+            // Slide 3: Ensemble Learning
+            {
+                title: "What is Ensemble Learning?",
+                content: `
+                    <h3 class="text-3xl font-bold mb-4">The Wisdom of the Crowd 🧠</h3>
+                    <p class="text-xl mb-6">Ensemble learning combines multiple individual models (often called "weak learners") to produce one optimal predictive model.</p>
+                    <div class="grid md:grid-cols-2 gap-8 text-left">
+                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h4 class="text-2xl font-semibold mb-2 text-blue-800">Bagging</h4>
+                            <p>Stands for <b>Bootstrap Aggregating</b>. Trains models in <b>parallel</b> on different subsets of data. The goal is to reduce variance.</p>
+                            <p class="mt-2 font-semibold">Example: Random Forest</p>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                            <h4 class="text-2xl font-semibold mb-2 text-green-800">Boosting</h4>
+                            <p>Trains models <b>sequentially</b>. Each new model tries to correct the errors made by its predecessor. The goal is to reduce bias.</p>
+                             <p class="mt-2 font-semibold">Example: AdaBoost, GBM</p>
+                        </div>
+                    </div>
+                `
+            },
+            // Slide 4: Boosting Core Concept
+            {
+                title: "The Core Idea of Boosting",
+                content: `
+                    <h3 class="text-3xl font-bold mb-4">Teamwork Makes the Dream Work</h3>
+                    <p class="text-xl mb-6 max-w-3xl mx-auto">Imagine a team of students taking a test. Instead of working independently, they work one after another.</p>
+                    <ol class="list-decimal list-inside space-y-4 text-lg text-left mx-auto max-w-2xl">
+                        <li>The first student attempts all questions.</li>
+                        <li>The second student focuses specifically on the questions the first student got wrong.</li>
+                        <li>The third student focuses on the questions that the first two *still* couldn't get right.</li>
+                        <li>This continues until the team has collectively mastered the test.</li>
+                    </ol>
+                    <p class="mt-6 text-xl font-semibold">Boosting turns a collection of "weak learners" into a single "strong learner".</p>
+                `
+            },
+            // Slide 5: AdaBoost Intuition
+            {
+                title: "AdaBoost: The Intuition",
+                content: `
+                    <h3 class="text-3xl font-bold mb-2">AdaBoost (Adaptive Boosting)</h3>
+                    <p class="text-xl mb-6">The original boosting algorithm. It's all about giving a voice to the underdog.</p>
+                    <div class="text-left max-w-3xl mx-auto space-y-4 text-lg">
+                        <p>💡 <b>Layman's Analogy:</b> Think of it as re-weighting exam questions.</p>
+                        <p>Initially, all data points (questions) have equal importance.</p>
+                        <p>1. A simple model (a "stump" - a one-level decision tree) tries to classify the data.</p>
+                        <p>2. AdaBoost looks at the misclassified points and says, "These are tough! We need to pay more attention to them." It increases their weights.</p>
+                        <p>3. It decreases the weights of correctly classified points ("We've got these covered.").</p>
+                        <p>4. The next model is trained on this new, re-weighted dataset, forcing it to focus on the difficult cases.</p>
+                        <p>5. The final prediction is a weighted vote from all the models. The models that performed better get a bigger say!</p>
+                    </div>
+                `
+            },
+            // Slide 6: AdaBoost Technical (UPDATED)
+            {
+                title: "AdaBoost: The Technical Details",
+                content: `
+                    <h3 class="text-3xl font-bold mb-4">How AdaBoost Works ⚙️</h3>
+                    <div class="text-left max-w-3xl mx-auto space-y-3 text-base">
+                        <p><b>1. Initialization:</b></p>
+                        <div class="explanation">"Let's start by assuming every data point is equally important."</div>
+                        <div class="formula">w<sub>i</sub> = 1/N</div>
+                        
+                        <p><b>2. Iterate for M models (m = 1 to M):</b></p>
+                        <ul class="list-none pl-4 space-y-2">
+                            <li><b>A. Fit a weak classifier $G_m(x)$</b>
+                                <div class="explanation">"Train a simple model (like a single-split tree) on the data, paying attention to the current weights."</div>
+                            </li>
+                            <li><b>B. Compute the model's error:</b>
+                                <div class="explanation">"How wrong was this model? We calculate a weighted error, so mistakes on important points count for more."</div>
+                                <div class="formula">err<sub>m</sub> = &Sigma; w<sub>i</sub> * I(y<sub>i</sub> &ne; G<sub>m</sub>(x<sub>i</sub>)) / &Sigma; w<sub>i</sub></div>
+                            </li>
+                            <li><b>C. Compute the model's importance (its "say"):</b>
+                                <div class="explanation">"Based on its error, how much should we trust this model? A model with low error gets a bigger 'say' (alpha) in the final vote."</div>
+                                <div class="formula">&alpha;<sub>m</sub> = learning_rate * log((1 - err<sub>m</sub>) / err<sub>m</sub>)</div>
+                            </li>
+                            <li><b>D. Update the weights of each data point:</b>
+                                <div class="explanation">"Now, let's update the importance of each data point. We increase the weight of points the model got wrong, so the *next* model will focus on them more."</div>
+                                <div class="formula">w<sub>i</sub> &larr; w<sub>i</sub> * exp(&alpha;<sub>m</sub> * I(y<sub>i</sub> &ne; G<sub>m</sub>(x<sub>i</sub>)))</div>
+                                <p class="text-sm text-gray-600 mt-2">Then, normalize weights so they sum to 1 (housekeeping).</p>
+                            </li>
+                        </ul>
+                        <p><b>3. Final Prediction:</b></p>
+                        <div class="explanation">"Combine all the weak models. The final decision is a weighted vote, where each model contributes based on its 'say' (alpha)."</div>
+                        <div class="formula">G(x) = sign(&Sigma; &alpha;<sub>m</sub> * G<sub>m</sub>(x))</div>
+                    </div>
+                `
+            },
+            // Slide 7: AdaBoost Hyperparameters
+            {
+                title: "AdaBoost: Key Hyperparameters",
+                content: `
+                    <h3 class="text-3xl font-bold mb-6">Tuning AdaBoost</h3>
+                    <div class="text-left max-w-2xl mx-auto space-y-6 text-lg">
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>base_estimator</code></h4>
+                            <p class="text-gray-700">The weak learner model. By default, it's a decision tree with a depth of 1 (a "decision stump"). You can use other models, but simple ones work best.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>n_estimators</code></h4>
+                            <p class="text-gray-700">The total number of models to build in the sequence. Too few can lead to underfitting, too many can lead to overfitting. Default is 50.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>learning_rate</code></h4>
+                            <p class="text-gray-700">Shrinks the contribution of each classifier by this value. It's a trade-off with <code>n_estimators</code>. A lower learning rate requires more estimators for similar performance but can be more robust. Default is 1.0.</p>
+                        </div>
+                    </div>
+                `
+            },
+            // Slide 8: Gradient Boosting Intuition
+            {
+                title: "Gradient Boosting (GBM): The Intuition",
+                content: `
+                    <h3 class="text-3xl font-bold mb-2">A New Approach: Learning from Errors</h3>
+                    <p class="text-xl mb-6">GBM takes a different path. Instead of re-weighting data points, it directly tries to correct the errors.</p>
+                    <div class="text-left max-w-3xl mx-auto space-y-4 text-lg">
+                        <p>💡 <b>Layman's Analogy:</b> A game of "Guess the Number".</p>
+                        <p>1. <b>You:</b> "I'll start with an initial guess, say 50." (This is the first simple model).</p>
+                        <p>2. <b>Me:</b> "You're off by +27." (This is the error, or "residual").</p>
+                        <p>3. <b>You:</b> "Okay, my next guess needs to account for that error." You build a new model, not to predict the original number, but to predict the error (27).</p>
+                        <p>4. This new model might predict, say, +25. You add this to your previous guess: 50 + 25 = 75.</p>
+                        <p>5. <b>Me:</b> "You're now off by +2." (A smaller residual!).</p>
+                        <p>6. You build another model to predict this new, smaller error. This continues, with each new model making a small correction, getting you closer and closer to the right answer.</p>
+                    </div>
+                `
+            },
+            // Slide 9: Gradient Boosting Technical (UPDATED)
+            {
+                title: "GBM: The Technical Details",
+                content: `
+                    <h3 class="text-3xl font-bold mb-4">How GBM Works 📉</h3>
+                    <div class="text-left max-w-3xl mx-auto space-y-3 text-base">
+                        <p><b>1. Initialization:</b></p>
+                        <div class="explanation">"Make a simple first guess for every data point. A good starting point is just the average of all the actual outcomes."</div>
+                        <div class="formula">F<sub>0</sub>(x) = mean(y)</div>
+                        
+                        <p><b>2. Iterate for M models (m = 1 to M):</b></p>
+                        <ul class="list-none pl-4 space-y-2">
+                            <li><b>A. Compute the residuals:</b>
+                                <div class="explanation">"For each data point, calculate how wrong our current combined model is. This error is called the 'residual'."</div>
+                                <div class="formula">r<sub>im</sub> = y<sub>i</sub> - F<sub>m-1</sub>(x<sub>i</sub>)</div>
+                            </li>
+                            <li><b>B. Fit a new model to the residuals:</b>
+                                <div class="explanation">"Now, train a new weak model ($h_m(x)$). Its job is NOT to predict the original target (y), but to predict the *errors* (residuals) we just calculated."</div>
+                            </li>
+                            <li><b>C. Update the combined model:</b>
+                                <div class="explanation">"Add this new 'error-predicting' model to our main model. This is like making a small correction to our previous guess. The learning rate ($\u03BD$) controls how big this correction is."</div>
+                                <div class="formula">F<sub>m</sub>(x) = F<sub>m-1</sub>(x) + &nu; * h<sub>m</sub>(x)</div>
+                            </li>
+                        </ul>
+                        <p><b>3. Final Prediction:</b></p>
+                        <div class="explanation">"The final prediction is simply our initial guess plus all the small corrections made by every tree in the sequence."</div>
+                    </div>
+                `
+            },
+            // Slide 10: GBM Hyperparameters
+            {
+                title: "GBM: Key Hyperparameters",
+                content: `
+                    <h3 class="text-3xl font-bold mb-6">Tuning GBM</h3>
+                    <div class="text-left max-w-2xl mx-auto space-y-6 text-lg">
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>learning_rate</code> (or eta)</h4>
+                            <p class="text-gray-700">Crucial. A small value (e.g., 0.01-0.1) means each tree makes a small contribution. This requires a higher <code>n_estimators</code> but generally leads to better performance. Default is 0.1.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>n_estimators</code></h4>
+                            <p class="text-gray-700">The number of trees to build. You find the optimal number using early stopping on a validation set. Default is 100.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>subsample</code></h4>
+                            <p class="text-gray-700">The fraction of samples to be used for fitting each tree. If less than 1.0, this introduces stochasticity (Stochastic Gradient Boosting), which helps prevent overfitting. A common value is 0.8.</p>
+                        </div>
+                         <div>
+                            <h4 class="font-semibold text-xl"><code>max_depth</code></h4>
+                            <p class="text-gray-700">The maximum depth of the individual trees. Usually kept low (e.g., 3-8) to keep learners weak and prevent overfitting.</p>
+                        </div>
+                    </div>
+                `
+            },
+            // Slide 11: Enter XGBoost
+            {
+                title: "The Need for More: Enter XGBoost",
+                content: `
+                    <h3 class="text-3xl font-bold mb-4">XGBoost: eXtreme Gradient Boosting 🚀</h3>
+                    <p class="text-xl mb-6 max-w-3xl mx-auto">While GBM is powerful, it had limitations in speed and was prone to overfitting. XGBoost was created as a research project by Tianqi Chen and became famous for winning machine learning competitions.</p>
+                    <p class="text-2xl font-semibold text-green-700">XGBoost is an implementation of Gradient Boosting, but with several major enhancements.</p>
+                    <div class="mt-8 text-lg">
+                        <p>Think of it as taking a standard car (GBM) and turning it into a Formula 1 race car (XGBoost). It's faster, more powerful, and has more controls to prevent it from crashing (overfitting).</p>
+                    </div>
+                `
+            },
+            // Slide 12: XGBoost Technical Improvements
+            {
+                title: "XGBoost: The 'Extreme' Advantage",
+                content: `
+                    <h3 class="text-3xl font-bold mb-4">What Makes XGBoost So Good?</h3>
+                    <div class="text-left max-w-3xl mx-auto space-y-4 text-lg">
+                        <div>
+                            <h4 class="font-semibold text-xl">1. Regularization (The Anti-Overfitting Shield)</h4>
+                            <p>XGBoost adds both L1 (Lasso) and L2 (Ridge) regularization terms to its loss function. This penalizes complex models, making them simpler and less likely to overfit. This is a huge advantage over standard GBM.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl">2. Sophisticated Tree Building</h4>
+                            <p>Instead of standard criteria like Gini/Entropy, XGBoost uses a custom "Similarity Score" and "Gain" to decide on splits. It knows the loss reduction a split will provide *before* it makes the split.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl">3. Speed and Parallelization</h4>
+                            <p>The tree-building process is designed to be parallelizable. It can use all available CPU cores to build trees much faster than sequential GBM.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl">4. Built-in Handling of Missing Values</h4>
+                            <p>XGBoost has a default direction for missing values at each split. It learns the best path for them during training, so you don't need to impute them beforehand.</p>
+                        </div>
+                    </div>
+                `
+            },
+            // Slide 13: XGBoost Hyperparameters
+            {
+                title: "XGBoost: Key Hyperparameters",
+                content: `
+                    <h3 class="text-3xl font-bold mb-6">Tuning the Beast</h3>
+                    <p class="text-lg mb-4">XGBoost has many of the same parameters as GBM (<code>learning_rate</code>, <code>n_estimators</code>, <code>max_depth</code>) plus some powerful additions:</p>
+                    <div class="text-left max-w-2xl mx-auto space-y-6 text-lg">
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>gamma</code> (min_split_loss)</h4>
+                            <p class="text-gray-700">A node is split only if the split gives a positive reduction in the loss function. Gamma specifies the minimum loss reduction required. A higher gamma makes the algorithm more conservative.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>colsample_bytree</code>, <code>colsample_bylevel</code>, <code>colsample_bynode</code></h4>
+                            <p class="text-gray-700">These control feature subsampling at different stages (per tree, per level, per split). It's another powerful tool against overfitting.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl"><code>scale_pos_weight</code></h4>
+                            <p class="text-gray-700">Extremely useful for imbalanced classification problems. It controls the balance of positive and negative weights.</p>
+                        </div>
+                    </div>
+                `
+            },
+            // Slide 14: Comparison
+            {
+                title: "Side-by-Side Comparison",
+                content: `
+                    <h3 class="text-3xl font-bold mb-6">AdaBoost vs. GBM vs. XGBoost</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm md:text-base comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>AdaBoost</th>
+                                    <th>Gradient Boosting (GBM)</th>
+                                    <th>XGBoost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><b>Core Idea</b></td>
+                                    <td>Focuses on high-weight (misclassified) data points.</td>
+                                    <td>Fits new models to the residual errors of the previous model.</td>
+                                    <td>Advanced GBM with regularization and performance optimizations.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Weak Learner</b></td>
+                                    <td>Typically Decision Stumps (depth=1 tree).</td>
+                                    <td>Typically shallow Decision Trees (depth=3-8).</td>
+                                    <td>Typically shallow Decision Trees (called "boosters").</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Performance</b></td>
+                                    <td>Good, but often outperformed by newer methods.</td>
+                                    <td>Very strong performance.</td>
+                                    <td>State-of-the-art, often the best performing.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Speed</b></td>
+                                    <td>Relatively fast.</td>
+                                    <td>Slower, as it's sequential.</td>
+                                    <td>Much faster due to parallel processing and other optimizations.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Overfitting Control</b></td>
+                                    <td>Learning rate and n_estimators.</td>
+                                    <td>Subsampling, learning rate, tree depth.</td>
+                                    <td>Built-in L1/L2 regularization, gamma, feature subsampling. More robust.</td>
+                                </tr>
+                                 <tr>
+                                    <td><b>Missing Values</b></td>
+                                    <td>Needs pre-processing (imputation).</td>
+                                    <td>Needs pre-processing (imputation).</td>
+                                    <td>Handles them automatically.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `
+            },
+            // Slide 15: Conclusion
+            {
+                title: "Conclusion & When to Use Which?",
+                content: `
+                    <h3 class="text-3xl font-bold mb-6">Choosing Your Boosting Tool</h3>
+                    <div class="text-left max-w-3xl mx-auto space-y-6 text-lg">
+                        <div>
+                            <h4 class="font-semibold text-xl text-blue-700">Use AdaBoost when...</h4>
+                            <p>You want a simple, fundamental understanding of boosting or have a problem where it performs well. It's a great teaching tool.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl text-green-700">Use Gradient Boosting (Scikit-Learn's GBM) when...</h4>
+                            <p>You need a powerful model and are already in the Scikit-Learn ecosystem. It's robust and highly effective, but can be slow on large datasets.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xl text-red-700">Use XGBoost when...</h4>
+                            <p>You need the highest possible performance and speed. For competitions, large datasets, or production systems where accuracy and efficiency are critical, XGBoost (along with LightGBM and CatBoost) is usually the top choice.</p>
+                        </div>
+                    </div>
+                `
+            },
+            // Slide 16: Q&A
+            {
+                title: "Thank You",
+                content: `
+                    <h2 class="text-6xl font-bold text-blue-700 mb-8">Q & A</h2>
+                    <p class="text-3xl text-gray-600">Any Questions?</p>
+                `
+            }
+        ];
+
+        let currentSlide = 0;
+        const slideshowContainer = document.getElementById('slideshow-container');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slide-counter');
+
+        function renderSlide() {
+            const slideData = slides[currentSlide];
+            slideshowContainer.innerHTML = `
+                <div class="slide active">
+                    <div class="slide-content p-8 md:p-12 text-center flex flex-col justify-center items-center min-h-[75vh]">
+                        ${slideData.content}
+                    </div>
+                    <div class="bg-gray-100 p-4 border-t border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-700">${slideData.title}</h2>
+                    </div>
+                </div>
+            `;
+            updateControls();
+        }
+
+        function updateControls() {
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+            slideCounter.textContent = `Slide ${currentSlide + 1} of ${slides.length}`;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                renderSlide();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                renderSlide();
+            }
+        });
+        
+        // Initial render
+        renderSlide();
+
+    </script>
+</body>
+</html>

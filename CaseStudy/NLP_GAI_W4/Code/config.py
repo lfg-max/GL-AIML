@@ -52,7 +52,7 @@ DEFAULT_K_RETRIEVER = 3
 
 # --- LLM Generation Parameters ---
 # Default maximum number of tokens for the LLM to generate.
-DEFAULT_MAX_TOKENS = 1024 # Increased from 50 to allow for more complete answers
+DEFAULT_MAX_TOKENS = 8192 # Increased to allow for more complete answers
 # Default temperature for LLM generation (controls randomness). 0.0 is deterministic.
 DEFAULT_TEMPERATURE = 0.1 # A low temperature for more factual, less creative answers
 # Default top_p value for nucleus sampling.

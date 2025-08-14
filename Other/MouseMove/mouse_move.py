@@ -3,7 +3,6 @@ import random
 import time
 import threading
 import os
-
 stop_flag = threading.Event()
 
 def read_config():

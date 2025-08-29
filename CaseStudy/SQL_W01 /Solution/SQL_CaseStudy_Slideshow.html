@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GL-Beats Data Exploration: SQL Queries</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #1a1a2e; /* Dark blue/purple */
+            --secondary-bg: #16213e; /* Slightly lighter dark blue */
+            --card-bg: #0f3460; /* Even lighter dark blue for cards */
+            --text-light: #e0e0e0; /* Light grey for text */
+            --text-accent: #e94560; /* Reddish accent */
+            --code-bg: #0a1128; /* Darker background for code */
+            --code-text: #87ceeb; /* Sky blue for code */
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            /* New colors for navigation bar */
+            --nav-bg: #2a2a3e; /* Darker shade for the navigation bar */
+            --nav-button-prev-bg: #3a3a4e; /* Dark grey for previous button */
+            --nav-button-next-bg: #5a4a8a; /* Purple-blue for next button */
+            --nav-button-hover-bg: #6a5a9a; /* Lighter purple on hover */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-light);
+            overflow: hidden; /* Prevent scrollbars from content overflow */
+        }
+        .slideshow-container {
+            width: 90%;
+            max-width: 1000px;
+            background-color: var(--secondary-bg);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.5s ease-in-out;
+            border: 1px solid var(--border-color);
+            padding-bottom: 80px; /* Space for the new bottom navigation bar */
+        }
+        .slide {
+            display: none;
+            padding: 50px;
+            text-align: left; /* Align text left for executive feel */
+            box-sizing: border-box;
+            min-height: 500px; /* Ensure consistent height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start; /* Align content to the start */
+            transition: opacity 0.8s ease-in-out;
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+        h1 {
+            font-size: 2.8em;
+            color: var(--text-accent);
+            margin-bottom: 25px;
+            text-align: center;
+            width: 100%;
+        }
+        h2 {
+            font-size: 2em;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--text-accent);
+            padding-bottom: 10px;
+            width: 100%; /* Ensure heading spans full width */
+        }
+        pre {
+            background-color: var(--code-bg);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            text-align: left;
+            margin-top: 25px;
+            border: 1px solid var(--border-color);
+            width: 100%; /* Ensure pre spans full width */
+            box-sizing: border-box;
+        }
+        code {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace; /* Fira Code for better readability */
+            color: var(--code-text);
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        p {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-top: 15px;
+            width: 100%; /* Ensure paragraph spans full width */
+        }
+        p strong {
+            color: var(--text-accent);
+        }
+
+        /* New Navigation Bar Styles */
+        .navigation-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px; /* Fixed height for the bar */
+            background-color: var(--nav-bg);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-sizing: border-box;
+            border-top: 1px solid rgba(255, 255, 255, 0.05); /* Subtle separator */
+            z-index: 10;
+        }
+        .nav-button {
+            cursor: pointer;
+            padding: 12px 25px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            border-radius: 8px; /* Rounded rectangular shape */
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 120px; /* Ensure consistent button width */
+            text-align: center;
+        }
+        .prev-button {
+            background-color: var(--nav-button-prev-bg);
+            border: 1px solid var(--nav-button-prev-bg); /* Match background for solid look */
+        }
+        .next-button {
+            background-color: var(--nav-button-next-bg);
+            border: 1px solid var(--nav-button-next-bg); /* Match background for solid look */
+        }
+        .nav-button:hover {
+            background-color: var(--nav-button-hover-bg);
+            border-color: var(--nav-button-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        .slide-number-display {
+            color: var(--text-light);
+            font-size: 1.1em;
+            font-weight: 400;
+            text-align: center;
+            flex-grow: 1; /* Allows it to take available space and center */
+        }
+
+        /* Click-to-reveal button for explanation */
+        .reveal-button {
+            background-color: #4CAF50; /* Green for reveal button */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            align-self: center; /* Center the button within the flex container */
+        }
+        .reveal-button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .explanation-content {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--card-bg); /* Use card background for explanation */
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: none; /* Hidden by default */
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeIn 0.5s ease-out forwards; /* Fade in animation */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .slideshow-container {
+                width: 95%;
+                margin: 20px 0;
+                padding-bottom: 70px; /* Adjust for smaller nav bar */
+            }
+            .slide {
+                padding: 30px;
+                min-height: 400px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .navigation-bar {
+                height: 70px;
+                padding: 0 20px;
+            }
+            .nav-button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+                min-width: 100px;
+            }
+            .slide-number-display {
+                font-size: 1em;
+            }
+            .reveal-button {
+                padding: 8px 15px;
+                font-size: 0.8em;
+            }
+            .explanation-content {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slideshow-container {
+                padding-bottom: 60px; /* Further adjust for mobile */
+            }
+            .slide {
+                padding: 20px;
+                min-height: 350px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            h2 {
+                font-size: 1.3em;
+            }
+            pre {
+                padding: 10px;
+            }
+            code {
+                font-size: 0.85em;
+            }
+            p {
+                font-size: 0.9em;
+            }
+            .navigation-bar {
+                height: 60px;
+                padding: 0 15px;
+            }
+            .nav-button {
+                padding: 8px 15px;
+                font-size: 0.8em;
+                min-width: 80px;
+            }
+            .slide-number-display {
+                font-size: 0.9em;
+            }
+            .reveal-button {
+                padding: 6px 12px;
+                font-size: 0.7em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="slideshow-container">
+
+    <div class="slide active">
+        <h1>GL-Beats: Data Exploration & Performance Review</h1>
+        <p><strong>Business Context:</strong> GL-Beats is a music-based startup selling records online globally. Executives need a performance review and recommendations on music genres for customers and artists to contract in specific countries based on popularity.</p>
+        <p><strong>Objective:</strong> As data scientists, we're exploring the dataset using SQL to answer key business questions and drive strategic decision-making.</p>
+    </div>
+
+    <!-- Query 1 -->
+    <div class="slide">
+        <h2>Query [1]: Question</h2>
+        <p>How to retrieve all the rows of data present in our table album?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [1]: Code & Explanation</h2>
+        <pre><code>USE gl_beats;
+
+SELECT *
+FROM album;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query uses <code>SELECT *</code> to retrieve all columns and all rows from the `album` table. It's a foundational query to get a complete view of a table's contents.</p>
+        </div>
+    </div>
+
+    <!-- Query 2 -->
+    <div class="slide">
+        <h2>Query [2]: Question</h2>
+        <p>How many rows of data are present in our table customers?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [2]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    COUNT(*) 
+FROM customers;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> <code>COUNT(*)</code> is an aggregate function that returns the total number of rows in the `customers` table. This helps understand the dataset's size.</p>
+        </div>
+    </div>
+
+    <!-- Query 3 -->
+    <div class="slide">
+        <h2>Query [3]: Question</h2>
+        <p>In order to show sample rows to the top management, write a query to show only 5 rows from the table artist.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [3]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM artist
+LIMIT 5;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>LIMIT 5</code> clause restricts the output to only the first 5 rows from the `artist` table. This is useful for providing a quick sample of data to stakeholders without fetching the entire dataset.</p>
+        </div>
+    </div>
+
+    <!-- Query 4 -->
+    <div class="slide">
+        <h2>Query [4]: Question</h2>
+        <p>Write a query to retrieve the unique playlist in our database.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [4]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    DISTINCT playlist_name
+FROM playlist;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>DISTINCT</code> keyword ensures that only unique `playlist_name` values are returned from the `playlist` table. This helps identify all the different types of playlists available.</p>
+        </div>
+    </div>
+
+    <!-- Query 5 -->
+    <div class="slide">
+        <h2>Query [5]: Question</h2>
+        <p>Write a query to fetch the unique artists present in our database?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [5]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    DISTINCT artist_name
+FROM artist;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> Similar to the previous query, <code>DISTINCT artist_name</code> fetches all unique artist names from the `artist` table. This is crucial for understanding the diversity of artists in the database.</p>
+        </div>
+    </div>
+
+    <!-- Query 6 -->
+    <div class="slide">
+        <h2>Query [6]: Question</h2>
+        <p>Write a query to count the customers in the country of Brazil?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [6]: Code & Explanation</h2>
+        <pre><code>SELECT
+     COUNT(DISTINCT customer_id) AS count_of_cust
+FROM customers
+WHERE customer_country = 'Brazil';</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query uses a <code>WHERE</code> clause to filter customers by `customer_country` equal to 'Brazil' and then counts the distinct `customer_id`s. This provides insights into customer distribution by country.</p>
+        </div>
+    </div>
+
+    <!-- Query 7 -->
+    <div class="slide">
+        <h2>Query [7]: Question</h2>
+        <p>Write a query to count the number of artists?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [7]: Code & Explanation</h2>
+        <pre><code>SELECT 
+    COUNT(DISTINCT artist_id) AS no_of_artist
+FROM artist;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> <code>COUNT(DISTINCT artist_id)</code> counts the unique `artist_id`s in the `artist` table, giving the total number of distinct artists GL-Beats has information on.</p>
+        </div>
+    </div>
+
+    <!-- Query 8 -->
+    <div class="slide">
+        <h2>Query [8]: Question</h2>
+        <p>Write a query to count the number of customers in the countries of Brazil, Germany, and Canada.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [8]: Code & Explanation</h2>
+        <pre><code>SELECT
+    COUNT(DISTINCT customer_id) AS count_of_cust
+FROM customers
+WHERE customer_country IN ('Brazil','Germany','Canada');</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>IN</code> operator allows specifying multiple values in the <code>WHERE</code> clause. This query efficiently counts customers in a list of specified countries.</p>
+        </div>
+    </div>
+
+    <!-- Query 9 -->
+    <div class="slide">
+        <h2>Query [9]: Question</h2>
+        <p>Write a query to retrieve information about customers with customer IDs ranging from 1 to 10.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [9]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE customer_id BETWEEN 1 AND 10;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>BETWEEN</code> operator is used to filter records within a specified range (inclusive). Here, it fetches all details for customers with `customer_id`s from 1 to 10.</p>
+        </div>
+    </div>
+
+    <!-- Query 10 -->
+    <div class="slide">
+        <h2>Query [10]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose duration is between 100000 and 500000 and whose price is 0.99.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [10]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE (milliseconds BETWEEN 100000 AND 500000) AND (unit_price = 0.99);</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query uses the <code>AND</code> operator to combine two conditions: `milliseconds` within a range AND `unit_price` exactly 0.99. Both conditions must be true for a row to be returned.</p>
+        </div>
+    </div>
+
+    <!-- Query 11 -->
+    <div class="slide">
+        <h2>Query [11]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose duration is in between 100000 and 500000 or whose price is 0.99?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [11]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE (milliseconds BETWEEN 100000 AND 500000) OR (unit_price = 0.99);</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>OR</code> operator returns rows where at least one of the specified conditions is true. Here, tracks with milliseconds in the range OR a unit price of 0.99 are selected.</p>
+        </div>
+    </div>
+
+    <!-- Query 12 -->
+    <div class="slide">
+        <h2>Query [12]: Question</h2>
+        <p>Write a query to get all the details for the customers whose first name starts with L?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [12]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE first_name LIKE 'L%';</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>LIKE</code> operator is used for pattern matching. <code>'L%'</code> matches any string that starts with 'L', followed by any sequence of characters (%). This helps in searching for names based on partial matches.</p>
+        </div>
+    </div>
+
+    <!-- Query 13 -->
+    <div class="slide">
+        <h2>Query [13]: Question</h2>
+        <p>Write a query to get all the details for the customers whose first name ends with K?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [13]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE first_name LIKE '%K';</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> <code>'%K'</code> matches any string that ends with 'K', preceded by any sequence of characters (%). This allows finding customers whose first name ends with a specific letter.</p>
+        </div>
+    </div>
+
+    <!-- Query 14 -->
+    <div class="slide">
+        <h2>Query [14]: Question</h2>
+        <p>Write a query to fetch the details of the customer whose first name is Dan.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [14]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM customers
+WHERE first_name = 'Dan';</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This is a straightforward equality comparison using the <code>=</code> operator to find all records where the `first_name` is exactly 'Dan'.</p>
+        </div>
+    </div>
+
+    <!-- Query 15 -->
+    <div class="slide">
+        <h2>Query [15]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose unit price should not be equal to $0.90 and also the genre ID should not be equal to 18.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [15]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE unit_price <> 0.90 AND genre_id != 18;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The operators <code><></code> and <code>!=</code> both signify "not equal to". This query filters tracks where the `unit_price` is not 0.90 AND the `genre_id` is not 18, demonstrating exclusion conditions.</p>
+        </div>
+    </div>
+
+    <!-- Query 16 -->
+    <div class="slide">
+        <h2>Query [16]: Question</h2>
+        <p>Write a query to fetch the details of the tracks where the unit price is greater than 0.90 $?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [16]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM tracks
+WHERE unit_price > 0.90;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> The <code>></code> operator is used for a "greater than" comparison. This query retrieves all track details where the `unit_price` is strictly greater than 0.90.</p>
+        </div>
+    </div>
+
+    <!-- Query 17 -->
+    <div class="slide">
+        <h2>Query [17]: Question</h2>
+        <p>Write a query to fetch the details of the tracks whose genre id is 10.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [17]: Code & Explanation</h2>
+        <pre><code>SELECT  
+    track_id
+FROM tracks
+WHERE genre_id = 10;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query selects only the `track_id` from the `tracks` table where the `genre_id` is equal to 10. This is useful for focusing on specific attributes based on a condition.</p>
+        </div>
+    </div>
+
+    <!-- Query 18 -->
+    <div class="slide">
+        <h2>Query [18]: Question</h2>
+        <p>Write a query to fetch the details of the tracks for the genre id greater than 10?</p>
+    </div>
+    <div class="slide">
+        <h2>Query [18]: Code & Explanation</h2>
+        <pre><code>SELECT  
+    track_id
+FROM tracks
+WHERE genre_id > 10;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> Similar to the previous query, but using the <code>></code> operator, this selects `track_id`s for all genres where the `genre_id` is greater than 10.</p>
+        </div>
+    </div>
+
+    <!-- Query 19 -->
+    <div class="slide">
+        <h2>Query [19]: Question</h2>
+        <p>Write a query to fetch the invoices for the billing city of Edmonton, and also the billing price should be greater than 8 dollars.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [19]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM invoice
+WHERE billing_city = 'Edmonton' AND total_price > 8;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query combines two conditions with <code>AND</code>: `billing_city` must be 'Edmonton' AND `total_price` must be greater than 8. This helps identify high-value invoices from specific locations.</p>
+        </div>
+    </div>
+
+    <!-- Query 20 -->
+    <div class="slide">
+        <h2>Query [20]: Question</h2>
+        <p>Write a query to fetch the invoices whose billing city is Berlin or Paris and the invoice date is 2009-02-01.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [20]: Code & Explanation</h2>
+        <pre><code>SELECT *
+FROM invoice
+WHERE invoice_date = '2009-02-01' AND (billing_city = 'Berlin' OR billing_city = 'Paris');</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query uses a combination of <code>AND</code> and <code>OR</code>. It retrieves invoices from a specific date AND where the `billing_city` is either 'Berlin' OR 'Paris'. Parentheses are used to ensure correct logical grouping.</p>
+        </div>
+    </div>
+
+    <!-- Query 21 -->
+    <div class="slide">
+        <h2>Query [21]: Question</h2>
+        <p>Write a query to retrieve number of invoices in each city from invoice table in descending order.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [21]: Code & Explanation</h2>
+        <pre><code>SELECT billing_city, COUNT(invoice_id) as cnt_city
+FROM invoice
+GROUP BY billing_city
+ORDER BY COUNT(billing_city) DESC;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query uses <code>GROUP BY</code> to aggregate invoices by `billing_city` and `COUNT` to get the number of invoices for each city. <code>ORDER BY ... DESC</code> sorts the results by the count in descending order, showing which cities have the most invoices.</p>
+        </div>
+    </div>
+
+    <!-- Query 22 -->
+    <div class="slide">
+        <h2>Query [22]: Question</h2>
+        <p>Write a query to get the revenue generated in each city from invoice table in descending order of cities.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [22]: Code & Explanation</h2>
+        <pre><code>SELECT billing_city, SUM(total_price) AS Total_Revenue
+FROM invoice
+GROUP BY billing_city
+ORDER BY 2 DESC;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query groups invoices by `billing_city` and uses <code>SUM(total_price)</code> to calculate the total revenue for each city. <code>ORDER BY 2 DESC</code> sorts by the second column (`Total_Revenue`) in descending order, highlighting top-revenue cities.</p>
+        </div>
+    </div>
+
+    <!-- Query 23 -->
+    <div class="slide">
+        <h2>Query [23]: Question</h2>
+        <p>Write a query to get the number of customers for each country that have number of customers more than 5 from customers table.</p>
+    </div>
+    <div class="slide">
+        <h2>Query [23]: Code & Explanation</h2>
+        <pre><code>SELECT customer_country, COUNT(customer_id) AS no_of_customers
+FROM customers
+GROUP BY 1
+HAVING count(customer_id) > 5
+ORDER BY 2;</code></pre>
+        <button class="reveal-button" onclick="toggleExplanation(this)">Show Explanation</button>
+        <div class="explanation-content">
+            <p><strong>Explanation:</strong> This query groups customers by `customer_country` and counts them. The <code>HAVING</code> clause filters these groups, showing only countries with more than 5 customers. <code>ORDER BY 2</code> sorts by the customer count, helping identify significant customer bases.</p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar at the bottom -->
+    <div class="navigation-bar">
+        <button class="nav-button prev-button" onclick="plusSlides(-1)">Previous</button>
+        <span class="slide-number-display"></span>
+        <button class="nav-button next-button" onclick="plusSlides(1)">Next</button>
+    </div>
+
+</div>
+
+<script>
+    let slideIndex = 0;
+    showSlides(slideIndex);
+
+    function plusSlides(n) {
+        showSlides(slideIndex += n);
+    }
+
+    function showSlides(n) {
+        let i;
+        let slides = document.getElementsByClassName("slide");
+        let totalSlides = slides.length;
+        if (n >= totalSlides) {slideIndex = 0}    
+        if (n < 0) {slideIndex = totalSlides - 1}
+        for (i = 0; i < totalSlides; i++) {
+            slides[i].style.display = "none";  
+            slides[i].style.opacity = 0;
+            // Hide explanation content when changing slides
+            const explanationContent = slides[i].querySelector('.explanation-content');
+            const revealButton = slides[i].querySelector('.reveal-button');
+            if (explanationContent) {
+                explanationContent.style.display = 'none';
+            }
+            if (revealButton) {
+                revealButton.textContent = 'Show Explanation';
+            }
+        }
+        slides[slideIndex].style.display = "flex";  
+        slides[slideIndex].style.opacity = 1;
+        updateSlideNumber();
+    }
+
+    function updateSlideNumber() {
+        let slides = document.getElementsByClassName("slide");
+        let currentSlideNumber = slideIndex + 1;
+        let totalSlides = slides.length;
+        const slideNumberDisplayElement = document.querySelector('.slide-number-display');
+        if (slideNumberDisplayElement) {
+            slideNumberDisplayElement.textContent = `Slide ${currentSlideNumber} / ${totalSlides}`;
+        }
+    }
+
+    function toggleExplanation(buttonElement) {
+        const explanationContent = buttonElement.nextElementSibling; // Get the next sibling, which is the explanation div
+        if (explanationContent && explanationContent.classList.contains('explanation-content')) {
+            if (explanationContent.style.display === 'none' || explanationContent.style.display === '') {
+                explanationContent.style.display = 'block';
+                buttonElement.textContent = 'Hide Explanation';
+            } else {
+                explanationContent.style.display = 'none';
+                buttonElement.textContent = 'Show Explanation';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateSlideNumber);
+</script>
+
+</body>
+</html>

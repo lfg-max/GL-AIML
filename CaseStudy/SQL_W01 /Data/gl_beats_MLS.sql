@@ -1,3 +1,5 @@
+--  drop database gl_beats;
+  
   CREATE DATABASE gl_beats;
   
   USE gl_beats;

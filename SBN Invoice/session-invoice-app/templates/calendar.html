@@ -1,0 +1,36 @@
+<!-- templates/calendar.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Calendar</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Session Calendar - {{ current_month }}/{{ current_year }}</h1>
+        <div class="calendar-grid">
+            {% for date, sessions in sessions_by_date.items() %}
+                <div class="calendar-day">
+                    <div class="day-header">{{ date }}</div>
+                    {% for session in sessions %}
+                        <div class="session">
+                            <p><strong>Time:</strong> {{ session.time }}</p>
+                            <p><strong>Instructor:</strong> {{ session.instructor }}</p>
+                            <p><strong>Title:</strong> {{ session.title }}</p>
+                            <p><strong>Amount:</strong> ₹{{ session.amount }}</p>
+                            <form action="/generate_invoice" method="post">
+                                <input type="hidden" name="date" value="{{ session.date }}">
+                                <input type="hidden" name="topic" value="{{ session.title }}">
+                                <input type="hidden" name="amount" value="{{ session.amount }}">
+                                <button type="submit">Generate Invoice</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

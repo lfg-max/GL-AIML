@@ -1,0 +1,23 @@
+[
+    {
+        "date": "2025-06-21",
+        "time": "9 to 11 am",
+        "instructor": "Sahil",
+        "title": "MD - W01 - Intro to Model Deployment",
+        "amount": 3000
+    },
+    {
+        "date": "2025-06-21",
+        "time": "12 to 2 pm",
+        "instructor": "Avneesh",
+        "title": "AML - W01 - Bagging",
+        "amount": 3000
+    },
+    {
+        "date": "2025-06-22",
+        "time": "9 to 11 am",
+        "instructor": "Arpit",
+        "title": "NLP - W04 - RAG - Retrieval Augmented Generation",
+        "amount": 4000
+    }
+]

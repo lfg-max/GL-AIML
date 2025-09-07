@@ -1,0 +1,113 @@
+<!-- templates/invoice_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        /* Include the CSS from the original Invoice.html */
+        /* For brevity, I've included a simplified version */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .total {
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>SBN Mentors Private Limited</h2>
+            <p>Tax Invoice</p>
+        </div>
+        
+        <div class="details">
+            <div>
+                <p><strong>Invoice No:</strong> {{ invoice_number }}</p>
+                <p><strong>Date:</strong> {{ invoice_date }}</p>
+            </div>
+            <div>
+                <p><strong>Buyer:</strong> Great Learning Education Services Private Limited</p>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ session_topic }}</td>
+                    <td>₹{{ "%.2f"|format(base_amount) }}</td>
+                </tr>
+                <tr>
+                    <td>IGST (18%)</td>
+                    <td>₹{{ "%.2f"|format(igst_amount) }}</td>
+                </tr>
+                <tr class="total">
+                    <td>Total</td>
+                    <td>₹{{ "%.2f"|format(total_amount) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div>
+            <p><strong>Amount in words:</strong> {{ amount_in_words }}</p>
+        </div>
+        
+        <div class="footer">
+            <div>
+                <p>Customer Signature</p>
+            </div>
+            <div>
+                <p>For SBN Mentors Private Limited</p>
+                <p>Authorized Signatory</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

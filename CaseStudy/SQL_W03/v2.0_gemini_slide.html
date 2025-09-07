@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .query-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .query-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .query-header {
+            background-color: #4a5568;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 4px solid #2d3748;
+        }
+        .query-body {
+            padding: 1.5rem;
+        }
+        .code-container {
+            position: relative;
+        }
+        .sql-code {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9em;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .copy-button:hover {
+            background-color: #4a5568;
+        }
+        .explanation h4 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #4299e1;
+            padding-left: 0.75rem;
+        }
+        .explanation p, .explanation li {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        .explanation ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        .explanation code {
+            background-color: #e2e8f0;
+            color: #2d3748;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800">Advanced SQL Query Analysis</h1>
+            <p class="text-lg text-gray-600 mt-2">A breakdown of common data analysis questions.</p>
+        </header>
+
+        <!-- Query 1 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">1. List all customers who have not placed any orders.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-1"><code>SELECT
+    c.FirstName,
+    c.LastName
+FROM
+    customer c
+LEFT JOIN
+    orders o ON c.Id = o.CustomerId
+WHERE
+    o.Id IS NULL;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-1', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query finds customers who exist in the <code>customer</code> table but have no matching entries in the <code>orders</code> table.</p>
+                    <ul>
+                        <li><strong><code>LEFT JOIN</code></strong>: The key is the <code>LEFT JOIN</code>, which starts with all records from the left table (<code>customer</code>) and finds matching records in the right table (<code>orders</code>).</li>
+                        <li><strong><code>IS NULL</code> Condition</strong>: If a customer has never placed an order, all the columns from the <code>orders</code> table will be <code>NULL</code> for that customer's row. The <code>WHERE o.Id IS NULL</code> clause filters for exactly these rows, giving us the list of non-ordering customers.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 2 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">2. Retrieve the names of products that have never been ordered.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-2"><code>SELECT
+    p.ProductName
+FROM
+    product p
+LEFT JOIN
+    orderitem oi ON p.Id = oi.ProductId
+WHERE
+    oi.OrderId IS NULL;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-2', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query uses the same logic as the previous one but applies it to products and order items.</p>
+                    <ul>
+                        <li><strong><code>LEFT JOIN</code></strong>: It joins <code>product</code> with <code>orderitem</code>. All products are included, but only those that have been ordered will have matching data from <code>orderitem</code>.</li>
+                        <li><strong><code>IS NULL</code> Filter</strong>: If a product has never been part of an order, its corresponding row in the joined table will have <code>NULL</code> for the <code>orderitem</code> columns. The <code>WHERE oi.OrderId IS NULL</code> clause isolates these unsold products.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 3 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">3. Identify the top 3 customers who have spent the most on orders.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-3"><code>SELECT
+    c.FirstName,
+    c.LastName,
+    SUM(o.TotalAmount) AS TotalSpent
+FROM
+    customer c
+JOIN
+    orders o ON c.Id = o.CustomerId
+GROUP BY
+    c.Id, c.FirstName, c.LastName
+ORDER BY
+    TotalSpent DESC
+LIMIT 3;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-3', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This is a classic aggregation query to find top performers.</p>
+                    <ul>
+                        <li><strong><code>JOIN</code></strong>: An <code>INNER JOIN</code> connects customers to their orders.</li>
+                        <li><strong><code>SUM(...)</code> and <code>GROUP BY</code></strong>: The <code>SUM(o.TotalAmount)</code> function calculates the total spending. The <code>GROUP BY c.Id, ...</code> clause ensures this calculation is performed for each unique customer.</li>
+                        <li><strong><code>ORDER BY ... DESC</code></strong>: This sorts the customers from the highest `TotalSpent` to the lowest.</li>
+                        <li><strong><code>LIMIT 3</code></strong>: This clause selects only the top 3 rows from the sorted result.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 4 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">4. For each supplier, show the total count of their unique products that have been ordered.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-4"><code>SELECT
+    s.CompanyName,
+    COUNT(DISTINCT p.Id) AS UniqueOrderedProducts
+FROM
+    supplier s
+JOIN
+    product p ON s.Id = p.SupplierId
+JOIN
+    orderitem oi ON p.Id = oi.ProductId
+GROUP BY
+    s.Id, s.CompanyName
+ORDER BY
+    s.CompanyName;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-4', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query counts distinct products that have sales data.</p>
+                    <ul>
+                         <li><strong><code>JOIN</code> Chain</strong>: It links suppliers to their products, and then links those products to the order items. The <code>INNER JOIN</code> to <code>orderitem</code> naturally filters out any product that has never been sold.</li>
+                        <li><strong><code>COUNT(DISTINCT p.Id)</code></strong>: This is the key function. It counts the number of unique product IDs for each group, ensuring that a product ordered multiple times is only counted once.</li>
+                        <li><strong><code>GROUP BY s.Id, ...</code></strong>: This groups the results by supplier, so the count is performed for each supplier individually.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Query 5 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">5. Identify the average spending per order for each customer who has placed more than one order.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-5"><code>SELECT
+    c.FirstName,
+    c.LastName,
+    AVG(o.TotalAmount) AS AverageOrderValue
+FROM
+    customer c
+JOIN
+    orders o ON c.Id = o.CustomerId
+GROUP BY
+    c.Id, c.FirstName, c.LastName
+HAVING
+    COUNT(o.Id) > 1
+ORDER BY
+    AverageOrderValue DESC;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-5', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query calculates an average, but only for a subset of customers who meet a specific condition.</p>
+                    <ul>
+                        <li><strong><code>AVG(...)</code> and <code>GROUP BY</code></strong>: First, orders are grouped by customer, and the average spending (<code>AVG(o.TotalAmount)</code>) is calculated for each customer.</li>
+                        <li><strong><code>HAVING</code> Clause</strong>: The <code>HAVING</code> clause is used to filter these groups. Unlike <code>WHERE</code>, which filters rows *before* grouping, <code>HAVING</code> filters *after* the aggregate functions have been calculated. Here, <code>HAVING COUNT(o.Id) > 1</code> keeps only the customers with more than one order.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Query 6 (Updated with ROW_NUMBER) -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">6. Identify the most popular product for each customer based on quantity ordered.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-6"><code>WITH RankedProducts AS (
+    SELECT
+        c.FirstName,
+        c.LastName,
+        p.ProductName,
+        SUM(oi.Quantity) AS TotalQuantity,
+        ROW_NUMBER() OVER (PARTITION BY c.Id ORDER BY SUM(oi.Quantity) DESC) as ProductRowNumber
+    FROM
+        customer c
+    JOIN
+        orders o ON c.Id = o.CustomerId
+    JOIN
+        orderitem oi ON o.Id = oi.OrderId
+    JOIN
+        product p ON oi.ProductId = p.Id
+    GROUP BY
+        c.Id, c.FirstName, c.LastName, p.ProductName
+)
+SELECT
+    FirstName,
+    LastName,
+    ProductName AS MostPopularProduct,
+    TotalQuantity
+FROM
+    RankedProducts
+WHERE
+    ProductRowNumber = 1;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-6', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This complex query requires ranking, which is a perfect use case for Window Functions.</p>
+                    <ul>
+                        <li><strong><code>ROW_NUMBER() OVER (...)</code></strong>: This function assigns a unique, sequential number to each row within a "partition". We use it instead of <code>RANK()</code> to prevent duplicates in the case of a tie.
+                            <ul>
+                                <li><strong><code>PARTITION BY c.Id</code></strong>: This tells the function to perform the ranking separately for each customer.</li>
+                                <li><strong><code>ORDER BY SUM(oi.Quantity) DESC</code></strong>: Within each customer's partition, it ranks products from the highest total quantity to the lowest. If two products have the same quantity, one will be arbitrarily chosen as #1.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Final <code>SELECT</code></strong>: The outer query simply selects all the rows from the CTE where the `ProductRowNumber` is 1, guaranteeing only one top product per customer.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 7 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">7. Display the average order amount for customers whose average order amount is higher than the overall average.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-7"><code>SELECT
+    c.FirstName,
+    c.LastName,
+    AVG(o.TotalAmount) AS CustomerAverage
+FROM
+    customer c
+JOIN
+    orders o ON c.Id = o.CustomerId
+GROUP BY
+    c.Id, c.FirstName, c.LastName
+HAVING
+    AVG(o.TotalAmount) > (SELECT AVG(TotalAmount) FROM orders)
+ORDER BY
+    CustomerAverage DESC;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-7', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query uses a subquery inside the `HAVING` clause to make a dynamic comparison.</p>
+                    <ul>
+                        <li><strong>Main Query</strong>: The main part of the query calculates the average spending for each customer, just like in a previous example.</li>
+                        <li><strong>Subquery</strong>: The subquery `(SELECT AVG(TotalAmount) FROM orders)` is executed first. It calculates a single value: the overall average amount across *all* orders in the database.</li>
+                        <li><strong><code>HAVING</code> Comparison</strong>: The `HAVING` clause then compares each customer's individual average to this single overall average value, keeping only those customers whose average spending is higher.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Query 8 -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">8. The top 5 products that contribute the most to revenue.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-8"><code>SELECT
+    p.ProductName,
+    SUM(oi.UnitPrice * oi.Quantity) AS TotalRevenue
+FROM
+    orderitem oi
+JOIN
+    product p ON oi.ProductId = p.Id
+GROUP BY
+    p.Id, p.ProductName
+ORDER BY
+    TotalRevenue DESC
+LIMIT 5;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-8', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query calculates revenue on the fly and aggregates it to find the most valuable products.</p>
+                    <ul>
+                        <li><strong>Revenue Calculation</strong>: The expression `SUM(oi.UnitPrice * oi.Quantity)` first multiplies the price by the quantity for each line item and then sums these values for each product group.</li>
+                        <li><strong><code>GROUP BY p.Id, ...</code></strong>: It groups all order line items by their product ID to ensure the revenue calculation is performed for each unique product.</li>
+                        <li><strong><code>ORDER BY</code> and <code>LIMIT</code></strong>: The results are sorted by the calculated `TotalRevenue` in descending order, and `LIMIT 5` picks the top five.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Query 9 (Updated with ROW_NUMBER) -->
+        <div class="query-card">
+            <div class="query-header">
+                <h2 class="text-xl font-semibold">9. Supplier's name and their best-selling product by quantity.</h2>
+            </div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="query-code-9"><code>WITH RankedProductsBySupplier AS (
+    SELECT
+        s.CompanyName,
+        p.ProductName,
+        SUM(oi.Quantity) AS TotalQuantitySold,
+        ROW_NUMBER() OVER (PARTITION BY s.Id ORDER BY SUM(oi.Quantity) DESC) AS ProductRowNumber
+    FROM
+        supplier s
+    JOIN
+        product p ON s.Id = p.SupplierId
+    JOIN
+        orderitem oi ON p.Id = oi.ProductId
+    GROUP BY
+        s.Id, p.Id, s.CompanyName, p.ProductName
+)
+SELECT
+    CompanyName,
+    ProductName AS BestSellingProduct,
+    TotalQuantitySold
+FROM
+    RankedProductsBySupplier
+WHERE
+    ProductRowNumber = 1;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('query-code-9', this)">Copy</button>
+                </div>
+                <div class="explanation">
+                    <h4>How It Works</h4>
+                    <p>This query partitions by supplier to find their individual best-sellers.</p>
+                    <ul>
+                        <li><strong><code>ROW_NUMBER()</code> with Supplier Partition</strong>: The window function is used again, but this time <strong><code>PARTITION BY s.Id</code></strong> tells it to run the ranking competition separately for each supplier. Within each supplier's product list, it assigns a unique row number based on total quantity sold, breaking any ties.</li>
+                        <li><strong>Final <code>SELECT</code></strong>: The outer query filters for `ProductRowNumber = 1` to find the single best-selling product for each supplier.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyQuery(preId, button) {
+            const preElement = document.getElementById(preId);
+            const codeText = preElement.querySelector('code').innerText;
+            
+            // Use the newer Clipboard API if available, otherwise fallback
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(codeText).then(() => {
+                    showFeedback(button);
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = codeText;
+                textArea.style.position = 'fixed'; // Prevent scrolling to bottom of page in MS Edge.
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showFeedback(button);
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showFeedback(button) {
+            const originalText = button.innerText;
+            button.innerText = 'Copied!';
+            setTimeout(() => {
+                button.innerText = originalText;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
+

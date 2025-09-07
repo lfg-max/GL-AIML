@@ -127,3 +127,47 @@ ORDER BY
     purchase_count DESC, 
     c.customer_country;
 -- Using this query, you can find out the most popular artists in each country.
+
+
+
+
+-- Additional for later
+
+WITH ArtistPurchases AS (
+    -- This first part is your original query to get the counts for each artist in each country
+    SELECT 
+        c.customer_country, 
+        ar.artist_name, 
+        COUNT(ii.invoice_line_id) AS purchase_count
+    FROM 
+        invoice_items ii
+        JOIN invoice i ON ii.invoice_id = i.invoice_id
+        JOIN customers c ON i.customer_id = c.customer_id
+        JOIN tracks t ON ii.track_id = t.track_id
+        JOIN album al ON t.album_id = al.album_id
+        JOIN artist ar ON al.artist_id = ar.artist_id
+    GROUP BY 
+        c.customer_country, 
+        ar.artist_name
+),
+RankedArtists AS (
+    -- Now, we rank each artist within their country based on the purchase count
+    SELECT
+        customer_country,
+        artist_name,
+        purchase_count,
+        RANK() OVER(PARTITION BY customer_country ORDER BY purchase_count DESC) AS artist_rank
+    FROM
+        ArtistPurchases
+)
+-- Finally, select only the artists with the top rank (rank = 1) for each country
+SELECT
+    customer_country,
+    artist_name,
+    purchase_count
+FROM
+    RankedArtists
+WHERE
+    artist_rank = 1
+ORDER BY
+    customer_country;

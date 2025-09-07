@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLS SQL Query Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .query-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .query-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .query-header {
+            background-color: #4a5568;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 4px solid #2d3748;
+        }
+        .query-body {
+            padding: 1.5rem;
+        }
+        .code-container {
+            position: relative;
+        }
+        .sql-code {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9em;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: #718096;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .copy-button:hover {
+            background-color: #4a5568;
+        }
+        .explanation h4 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #4299e1;
+            padding-left: 0.75rem;
+        }
+        .explanation p, .explanation li {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        .explanation ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        .explanation code {
+            background-color: #e2e8f0;
+            color: #2d3748;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800">MLS SQL Query Analysis</h1>
+            <p class="text-lg text-gray-600 mt-2">A breakdown of common data analysis questions for the MLS database.</p>
+        </header>
+
+        <!-- Queries 1-23 -->
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">1. Retrieve all rows from the album table.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q1"><code>SELECT * FROM album;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q1', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p><code>SELECT *</code> is the most basic query. It selects all columns from the specified table, and with no <code>WHERE</code> clause, it retrieves all rows.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">2. How many rows are in the customers table?</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q2"><code>SELECT COUNT(*) FROM customers;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q2', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>COUNT(*)</code> aggregate function counts the total number of rows in a table, providing a quick summary of the data volume.</p></div>
+            </div>
+        </div>
+        
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">3. Show only 5 sample rows from the artist table.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q3"><code>SELECT * FROM artist LIMIT 5;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q3', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>LIMIT</code> clause restricts the number of rows returned by the query. <code>LIMIT 5</code> is useful for previewing a small sample of data without fetching the entire table.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">4. Retrieve the unique playlists in the database.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q4"><code>SELECT DISTINCT playlist_name FROM playlist;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q4', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>DISTINCT</code> keyword eliminates duplicate rows from the result set. This query returns a clean list of each unique playlist name, even if a name appears multiple times in the table.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">5. Fetch the unique artists in the database.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q5"><code>SELECT DISTINCT artist_name FROM artist;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q5', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>Similar to the previous query, <code>DISTINCT</code> ensures that each artist's name is listed only once, providing a unique roster of all artists.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">6. Count the customers in the country of Brazil.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q6"><code>SELECT COUNT(*) FROM customers WHERE customer_country = 'Brazil';</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q6', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>WHERE</code> clause filters rows based on a condition. Here, it restricts the count to only those rows where the <code>customer_country</code> column is 'Brazil'.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">7. Count the number of artists.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q7"><code>SELECT COUNT(*) FROM artist;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q7', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p><code>COUNT(*)</code> is used again to get the total number of entries in the <code>artist</code> table.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">8. Count customers in Brazil, Germany, and Canada.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q8"><code>SELECT COUNT(*) FROM customers WHERE customer_country IN ('Brazil', 'Germany', 'Canada');</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q8', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>IN</code> operator allows you to specify multiple values in a <code>WHERE</code> clause. It is a shorthand for multiple <code>OR</code> conditions and makes the query cleaner.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">9. Retrieve customers with IDs from 1 to 10.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q9"><code>SELECT * FROM customers WHERE customer_id BETWEEN 1 AND 10;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q9', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>BETWEEN</code> operator is inclusive and selects values within a given range. It's a more readable way of writing <code>customer_id >= 1 AND customer_id <= 10</code>.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">10. Fetch tracks with duration between 100000-500000 and price of 0.99.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q10"><code>SELECT * FROM tracks WHERE milliseconds BETWEEN 100000 AND 500000 AND unit_price = 0.99;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q10', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>AND</code> operator combines multiple conditions in a <code>WHERE</code> clause. A row must satisfy *both* the duration and the price conditions to be included in the result.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">11. Fetch tracks with duration between 100000-500000 or price of 0.99.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q11"><code>SELECT * FROM tracks WHERE milliseconds BETWEEN 100000 AND 500000 OR unit_price = 0.99;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q11', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>OR</code> operator also combines conditions, but a row only needs to satisfy *at least one* of the conditions to be included.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">12. Get all details for customers whose first name starts with 'L'.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q12"><code>SELECT * FROM customers WHERE first_name LIKE 'L%';</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q12', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>LIKE</code> operator is used for pattern matching in strings. The percent sign <code>%</code> is a wildcard that matches any sequence of characters. <code>'L%'</code> matches any string starting with 'L'.</p></div>
+            </div>
+        </div>
+        
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">13. Get all details for customers whose first name ends with 'l'.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q13"><code>SELECT * FROM customers WHERE first_name LIKE '%l';</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q13', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>By placing the wildcard <code>%</code> at the beginning, <code>'%l'</code> matches any string of characters that ends with the letter 'l'.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">14. Fetch the details of the customer whose first name is Dan.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q14"><code>SELECT * FROM customers WHERE first_name = 'Dan';</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q14', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>This is a standard equality check in a <code>WHERE</code> clause to find an exact match for a string value.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">15. Fetch tracks whose unit price is not $0.90 and genre ID is not 18.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q15"><code>SELECT * FROM tracks WHERE unit_price != 0.90 AND genre_id != 18;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q15', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>!=</code> (or <code><></code> in some SQL dialects) operator means "not equal to". This query filters for tracks that satisfy both "not equal" conditions.</p></div>
+            </div>
+        </div>
+        
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">16. Fetch tracks where the unit price is greater than $0.90.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q16"><code>SELECT * FROM tracks WHERE unit_price > 0.90;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q16', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>The <code>></code> operator is a standard comparison operator used to filter for rows where a numeric value is greater than the specified value.</p></div>
+            </div>
+        </div>
+        
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">17. Fetch tracks whose genre id is 10.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q17"><code>SELECT * FROM tracks WHERE genre_id = 10;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q17', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>This is a simple equality filter on a numeric column to retrieve all tracks belonging to a specific genre ID.</p></div>
+            </div>
+        </div>
+        
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">18. Fetch tracks for the genre id greater than 10.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q18"><code>SELECT * FROM tracks WHERE genre_id > 10;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q18', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>Using the <code>></code> operator again, this query fetches all tracks that belong to a genre ID numerically higher than 10.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">19. Fetch invoices for Edmonton with a total greater than $8.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q19"><code>SELECT * FROM invoice WHERE billing_city = 'Edmonton' AND total_price > 8;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q19', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>This query combines a string equality check with a numeric greater-than check using <code>AND</code> to find specific, high-value invoices from a particular city.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">20. Fetch invoices for Berlin or Paris on 2009-02-01.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q20"><code>SELECT * FROM invoice WHERE billing_city IN ('Berlin', 'Paris') AND invoice_date = '2009-02-01';</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q20', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4><p>This query effectively filters for invoices that meet two criteria: the city must be one of the two in the <code>IN</code> list, AND the date must match exactly.</p></div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">21. Retrieve the number of invoices in each city, sorted descending.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q21"><code>SELECT billing_city, COUNT(*) AS NumberOfInvoices FROM invoice GROUP BY billing_city ORDER BY NumberOfInvoices DESC;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q21', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4>
+                    <ul>
+                        <li><strong><code>GROUP BY</code></strong>: This clause groups rows that have the same value in <code>billing_city</code> into summary rows.</li>
+                        <li><strong><code>COUNT(*)</code></strong>: This counts the number of original rows in each group.</li>
+                        <li><strong><code>ORDER BY ... DESC</code></strong>: This sorts the resulting groups from the highest invoice count to the lowest.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">22. Get the revenue generated in each city, sorted descending by city.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q22"><code>SELECT billing_city, SUM(total_price) AS CityRevenue FROM invoice GROUP BY billing_city ORDER BY billing_city DESC;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q22', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4>
+                    <ul>
+                        <li><strong><code>GROUP BY</code></strong>: Groups all invoices by their city.</li>
+                        <li><strong><code>SUM(total_price)</code></strong>: For each city group, this calculates the sum of the <code>total_price</code> column.</li>
+                        <li><strong><code>ORDER BY billing_city DESC</code></strong>: Sorts the final result alphabetically by city name in reverse (Z to A).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="query-card">
+            <div class="query-header"><h2 class="text-xl font-semibold">23. Get countries with more than 5 customers.</h2></div>
+            <div class="query-body">
+                <div class="code-container">
+                    <pre class="sql-code" id="q23"><code>SELECT customer_country, COUNT(*) AS NumberOfCustomers FROM customers GROUP BY customer_country HAVING COUNT(*) > 5;</code></pre>
+                    <button class="copy-button" onclick="copyQuery('q23', this)">Copy</button>
+                </div>
+                <div class="explanation"><h4>How It Works</h4>
+                    <ul>
+                        <li><strong><code>GROUP BY</code></strong>: Groups customers by their country.</li>
+                        <li><strong><code>COUNT(*)</code></strong>: Counts the number of customers in each country group.</li>
+                        <li><strong><code>HAVING</code></strong>: This clause filters the *groups* created by `GROUP BY`. It keeps only those countries where the customer count is greater than 5.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        function copyQuery(preId, button) {
+            const preElement = document.getElementById(preId);
+            const codeText = preElement.querySelector('code').innerText;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(codeText).then(() => {
+                    showFeedback(button);
+                });
+            } else {
+                const textArea = document.createElement('textarea');
+                textArea.value = codeText;
+                textArea.style.position = 'fixed';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showFeedback(button);
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showFeedback(button) {
+            const originalText = button.innerText;
+            button.innerText = 'Copied!';
+            setTimeout(() => {
+                button.innerText = originalText;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
